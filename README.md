@@ -28,5 +28,6 @@ You will want to use [this repo (UltraSM64 for Refresh 13) as a base](https://gi
 - [Axollyon](https://github.com/Axollyon)
 - [Fazana](https://github.com/FazanaJ)
 - [someone2639](https://github.com/farisawan-2000)
+- [Yoshi Milkman](https://github.com/YoshiMilkman)
 
 SM64 Decomp Discord: https://discord.gg/DuYH3Fh
