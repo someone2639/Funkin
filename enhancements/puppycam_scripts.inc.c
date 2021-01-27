@@ -7,15 +7,14 @@ static void newcam_angle_rotate(struct newcam_hardpos *params)
 
 
 static void newcam_open_cam(struct newcam_hardpos *params);
-
-// C-Up Cam that can be used in any puppycam script;
-// Just set newcam_c_up_cam_return to the function you
-// want to return to after leaving C-up mode
 static void (*newcam_c_up_cam_return)(struct newcam_hardpos *params) = newcam_open_cam;
 
 // The speed of changing Mario's look angle with the analog stick
 #define NEWCAM_C_UP_SPEED 6
 
+// C-Up Cam that can be used in any puppycam script;
+// Just set newcam_c_up_cam_return to the function you
+// want to return to after leaving C-up mode
 static void newcam_c_up_cam(struct newcam_hardpos *params) {
 	newcam_distance_target = 175;
 
@@ -30,15 +29,14 @@ static void newcam_c_up_cam(struct newcam_hardpos *params) {
 	}
 }
 
-// Great for open areas!
-// Comes with super-zoom out and a new C-Up mode!
 static int newcam_open_cam_zoomed_out = 0;
 
-// Change the number of angles
+// Change the number of angles here
 #define NUM_ANGLES 8
-
 #define _OPEN_CAM_DELTA (0x10000 / NUM_ANGLES)
 
+// Great for open areas!
+// Comes with super-zoom out and a new C-Up mode!
 static void newcam_open_cam(struct newcam_hardpos *params) {
 	if (!newcam_open_cam_zoomed_out) newcam_distance_target = 1000;
 
