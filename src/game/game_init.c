@@ -656,9 +656,10 @@ void thread5_game_loop(UNUSED void *arg) {
             // amount of free space remaining.
             print_text_fmt_int(180, 20, "BUF %d", gGfxPoolEnd - (u8 *) gDisplayListHead);
         }
-        if (gPlayer1Controller->buttonPressed & L_TRIG) {
-            osStartThread(&hvqmThread);
-            osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
-        }
+        // uncomment for HVQM
+        // if (gPlayer1Controller->buttonPressed & L_TRIG) {
+        //     osStartThread(&hvqmThread);
+        //     osRecvMesg(&gDmaMesgQueue, NULL, OS_MESG_BLOCK);
+        // }
     }
 }
