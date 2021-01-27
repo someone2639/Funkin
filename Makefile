@@ -384,8 +384,8 @@ else
   RSPASM              := $(TOOLS_DIR)/armips
 endif
 ENDIAN_BITWIDTH       := $(BUILD_DIR)/endian-and-bitwidth
-EMULATOR = mupen64plus
-EMU_FLAGS = --noosd
+EMULATOR = ~/Downloads/mupen64plus/mupen64plus-gui
+EMU_FLAGS = 
 LOADER = loader64
 LOADER_FLAGS = -vwf
 SHA1SUM = sha1sum
@@ -407,7 +407,7 @@ endif
 
 # Common build print status function
 define print
-  @$(PRINT) "$(GREEN)$(1) $(YELLOW)$(2)$(GREEN) -> $(BLUE)$(3)$(NO_COL)\n"
+  @$(PRINT) "$(GREEN)$(1) $(YELLOW)$(2)$(RED) -> $(BLUE)$(3)$(NO_COL)\n"
 endef
 
 #==============================================================================#
