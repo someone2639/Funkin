@@ -45,6 +45,7 @@
 # General project-specific ignores
 doxygen/doxygen/*
 build/*
+puppycam_spline/*
 *.dump
 *.mio0
 *.z64
