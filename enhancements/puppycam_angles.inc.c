@@ -24,9 +24,18 @@ struct newcam_hardpos newcam_fixedcam[] =
 /* Custom Scripts for ultrapuppycam */
 
 // Open-Area Cam with custom C-Up Mode Reimplementation
+// {/*Level ID*/ LEVEL_MAX,/*Area ID*/ 1,/*Permaswap*/ 0,
+//  /*Mode*/NC_MODE_NOTURN,
+//  /*Script*/ &newcam_open_cam,
+//  /*X begin*/ -16384	,/*Y begin*/ -16384,/*Z begin*/ -16384, //Where the activation box begins
+//  /*X end*/ 16384,/*Y end*/ 16384,/*Z end*/ 16384, //Where the activation box ends.
+//  /*Cam X*/ 32767,/*Cam Y*/ 32767,/*Cam Z*/ 32767, //The position the camera gets placed for NC_MODE_FIXED and NC_MODE_FIXED_NOMOVE
+//  /*Look X*/ 32767,/*Look Y*/ 32767,/*Look Z*/ 32767}, //The position the camera looks at for NC_MODE_FIXED_NOMOVE
+
+// my test of splines
 {/*Level ID*/ LEVEL_MAX,/*Area ID*/ 1,/*Permaswap*/ 0,
- /*Mode*/NC_FLAG_COLLISION | NC_FLAG_ZOOM | NC_FLAG_FOCUSX | NC_FLAG_FOCUSZ | NC_FLAG_POSX | NC_FLAG_POSY | NC_FLAG_POSZ,
- /*Script*/ &newcam_open_cam,
+ /*Mode*/NC_MODE_NOTURN,
+ /*Script*/ &newcam_test_spline,
  /*X begin*/ -16384	,/*Y begin*/ -16384,/*Z begin*/ -16384, //Where the activation box begins
  /*X end*/ 16384,/*Y end*/ 16384,/*Z end*/ 16384, //Where the activation box ends.
  /*Cam X*/ 32767,/*Cam Y*/ 32767,/*Cam Z*/ 32767, //The position the camera gets placed for NC_MODE_FIXED and NC_MODE_FIXED_NOMOVE

@@ -148,3 +148,8 @@ static void newcam_cylinder_cam(struct newcam_hardpos *params) {
     s16_vec_copy_from_vec3(&params->newcam_hard_camX, result);
     params->newcam_hard_camY += 500;
 }
+
+
+static void newcam_test_spline(struct newcam_hardpos *params) {
+    
+}
