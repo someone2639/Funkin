@@ -6,6 +6,7 @@
 #include "game/segment2.h"
 #include "game/save_file.h"
 #include "game/area.h"
+#include "level_misc_macros.h"
 #include "puppycam.h"
 #include "include/text_strings.h"
 #include "puppycam_collision.inc.c"
@@ -492,25 +493,32 @@ u8 newcam_progress_spline(Trajectory *spline[], u16 index, f32 speed , u8 mode, 
 
     switch (mode)
     {
-    case NC_SPLINE_NORMAL:
-    {
-        print_text_fmt_int(96,96,"%d",newcam_splinelookat[0]);
-        //newcam_splinelookat[0] = newcam_splinepos[0]+lengthdir_x(200,0x8000+atan2s(newcam_splinepos[0]-newcam_splineprev[0],newcam_splinepos[2]-newcam_splineprev[2]));
-        //newcam_splinelookat[1] = newcam_splinepos[1]+lengthdir_y(200,0x8000+atan2s(newcam_splinepos[1],newcam_splineprev[1]));
-        //newcam_splinelookat[2] = newcam_splinepos[2]+lengthdir_y(200,0x8000+atan2s(newcam_splinepos[0]-newcam_splineprev[0],newcam_splinepos[2]-newcam_splineprev[2]));
-        newcam_splinelookat[0] = newcam_splinepos[0]+(newcam_splineprev[0] - newcam_splinepos[0]);
-        newcam_splinelookat[1] = newcam_splinepos[1]+(newcam_splineprev[1] - newcam_splinepos[1]);
-        newcam_splinelookat[2] = newcam_splinepos[2]+(newcam_splineprev[2] - newcam_splinepos[2]);
+        case NC_SPLINE_NORMAL:
+        {
+            print_text_fmt_int(96,96,"%d",newcam_splinelookat[0]);
+            //newcam_splinelookat[0] = newcam_splinepos[0]+lengthdir_x(200,0x8000+atan2s(newcam_splinepos[0]-newcam_splineprev[0],newcam_splinepos[2]-newcam_splineprev[2]));
+            //newcam_splinelookat[1] = newcam_splinepos[1]+lengthdir_y(200,0x8000+atan2s(newcam_splinepos[1],newcam_splineprev[1]));
+            //newcam_splinelookat[2] = newcam_splinepos[2]+lengthdir_y(200,0x8000+atan2s(newcam_splinepos[0]-newcam_splineprev[0],newcam_splinepos[2]-newcam_splineprev[2]));
+            newcam_splinelookat[0] = newcam_splinepos[0]+(newcam_splineprev[0] - newcam_splinepos[0]);
+            newcam_splinelookat[1] = newcam_splinepos[1]+(newcam_splineprev[1] - newcam_splinepos[1]);
+            newcam_splinelookat[2] = newcam_splinepos[2]+(newcam_splineprev[2] - newcam_splinepos[2]);
 
-        break;
-    }
-    case NC_SPLINE_FOLLOW:
-    {
-        newcam_splinelookat[0] = approach_f32_symmetric(newcam_splinelookat[0],splinetarget2->pos[0],speed);
-        newcam_splinelookat[1] = approach_f32_symmetric(newcam_splinelookat[1],splinetarget2->pos[1],speed);
-        newcam_splinelookat[2] = approach_f32_symmetric(newcam_splinelookat[2],splinetarget2->pos[2],speed);
-        break;
-    }
+            break;
+        }
+        case NC_SPLINE_FOLLOW:
+        {
+            newcam_splinelookat[0] = approach_f32_symmetric(newcam_splinelookat[0],splinetarget2->pos[0],speed);
+            newcam_splinelookat[1] = approach_f32_symmetric(newcam_splinelookat[1],splinetarget2->pos[1],speed);
+            newcam_splinelookat[2] = approach_f32_symmetric(newcam_splinelookat[2],splinetarget2->pos[2],speed);
+            break;
+        }
+        case NC_SPLINE_FOLLOWMARIO:
+            {
+                newcam_splinelookat[0] = (s16) gMarioState->pos[0];
+                newcam_splinelookat[1] = (s16) gMarioState->pos[1];
+                newcam_splinelookat[2] = (s16) gMarioState->pos[2];
+                break;
+            }
     }
 
     //newcam_pos[0] = newcam_splinepos[0];
@@ -565,20 +573,20 @@ void newcam_process_cutscene(void)
 {
     if (newcam_cutscene)
     {
-    if (newcam_scenebar < 32)
-    {
-        newcam_scenebar+= 2;
-    }
-    if ((newcam_scenefunc)() == 1)
-    {
-        newcam_cutscene = 0;
-        newcam_sceneinput = 1;
-        sCurrPlayMode = 0;
-        newcam_mode = newcam_intendedmode;
-        newcam_modeflags = newcam_mode;
-        //clear_time_stop_flags(TIME_STOP_ENABLED | TIME_STOP_ALL_OBJECTS | TIME_STOP_MARIO_AND_DOORS | TIME_STOP_MARIO_OPENED_DOOR | TIME_STOP_DIALOG);
-    }
-    newcam_scenetimer++;
+        if (newcam_scenebar < 32)
+        {
+            newcam_scenebar+= 2;
+        }
+        if ((newcam_scenefunc)() == 1)
+        {
+            newcam_cutscene = 0;
+            newcam_sceneinput = 1;
+            sCurrPlayMode = 0;
+            newcam_mode = newcam_intendedmode;
+            newcam_modeflags = newcam_mode;
+            //clear_time_stop_flags(TIME_STOP_ENABLED | TIME_STOP_ALL_OBJECTS | TIME_STOP_MARIO_AND_DOORS | TIME_STOP_MARIO_OPENED_DOOR | TIME_STOP_DIALOG);
+        }
+        newcam_scenetimer++;
     }
     else
     {

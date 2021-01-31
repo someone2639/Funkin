@@ -3047,8 +3047,10 @@ void update_camera(struct Camera *c) {
 
     find_mario_floor_and_ceil(&sMarioGeometry);
     gCheckingSurfaceCollisionsForCamera = TRUE;
-    vec3f_copy(c->pos, gLakituState.goalPos);
-    vec3f_copy(c->focus, gLakituState.goalFocus);
+    if (newcam_cutscene == 0){
+        vec3f_copy(c->pos, gLakituState.goalPos);
+        vec3f_copy(c->focus, gLakituState.goalFocus);
+    }
 
     c->yaw = gLakituState.yaw;
     c->nextYaw = gLakituState.nextYaw;
@@ -3214,7 +3216,8 @@ void update_camera(struct Camera *c) {
         }
     }
 
-    update_lakitu(c);
+    if (newcam_cutscene == 0)
+        update_lakitu(c);
 
     gLakituState.lastFrameAction = sMarioCamState->action;
 }

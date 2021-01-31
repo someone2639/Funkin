@@ -22,6 +22,8 @@ static void (*newcam_c_up_cam_return)(struct newcam_hardpos *params) = newcam_op
 // The speed of changing Mario's look angle with the analog stick
 #define NEWCAM_C_UP_SPEED 6
 
+#define ABS(x) ((x < 0) ? -(x) : (x))
+#define DISTANCE(x, y) (ABS(x - y))
 static void newcam_c_up_cam(struct newcam_hardpos *params) {
     newcam_distance_target = 175;
 
@@ -33,6 +35,17 @@ static void newcam_c_up_cam(struct newcam_hardpos *params) {
         newcam_tilt = 1500;
         newcam_yaw = -gMarioState->faceAngle[1]-0x4000;
         set_mario_action(gMarioState, ACT_IDLE, 0);
+    }
+
+    // vanilla feature: access wing cap stage
+    if (gMarioState->floor->type == SURFACE_LOOK_UP_WARP
+        && save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1) >= 10) {
+        if (DISTANCE(newcam_yaw, 16384) < 50 && DISTANCE(newcam_tilt, -10000) < 50) {
+            params->newcam_hard_script = newcam_c_up_cam_return;
+            newcam_tilt = 1500;
+            newcam_yaw = -gMarioState->faceAngle[1]-0x4000;
+            level_trigger_warp(gMarioState, WARP_OP_UNKNOWN_01);
+        }
     }
 }
 
@@ -149,7 +162,3 @@ static void newcam_cylinder_cam(struct newcam_hardpos *params) {
     params->newcam_hard_camY += 500;
 }
 
-
-static void newcam_test_spline(struct newcam_hardpos *params) {
-    
-}

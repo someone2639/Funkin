@@ -7,6 +7,7 @@
 #define NC_SPLINE_NORMAL 0x00 //Will face the direction that it's moving.
 #define NC_SPLINE_NOTURN 0x01 //Won't change direction at all.
 #define NC_SPLINE_FOLLOW 0x02 //Will face the direction of a second spline.
+#define NC_SPLINE_FOLLOWMARIO 0x03 // looks at mario
 
 #ifndef TARGET_N64
     #define NC_CODE_NOSAVE //This gets disabled off the N64 because it's no longer using the EEPROM or the old save system.
