@@ -359,7 +359,23 @@ void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 b
     play_transition(transType, time, red, green, blue);
 }
 
+Gfx s2d_init_dl[] = {
+    gsDPPipeSync(),
+    gsDPSetTexturePersp(G_TP_NONE),
+    gsDPSetTextureLOD(G_TL_TILE),
+    gsDPSetTextureLUT(G_TT_NONE),
+    gsDPSetTextureConvert(G_TC_FILT),
+    gsDPSetAlphaCompare(G_AC_THRESHOLD),
+    gsDPSetBlendColor(0, 0, 0, 0x01),
+    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
+    gsSPEndDisplayList(),
+};
+
+#include "funkin/funkin.h"
+#include "funkin/notes.h"
+#include "s2d_engine/s2d_print.h"
 void render_game(void) {
+    noteIndex = 0;
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
 
@@ -367,7 +383,7 @@ void render_game(void) {
 
         gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, BORDER_HEIGHT, SCREEN_WIDTH,
                       SCREEN_HEIGHT - BORDER_HEIGHT);
-        render_hud();
+        // render_hud();
 
         gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         render_text_labels();
@@ -409,6 +425,26 @@ void render_game(void) {
         } else {
             clear_frame_buffer(gWarpTransFBSetColor);
         }
+    }
+    if (gMarioState && gMarioObject) {
+        s2d_init();
+        gSPDisplayList(gDisplayListHead++, s2d_init_dl);
+
+        funkin_game_loop();
+
+        // char d[0x40];
+        // sprintf(d, COLOR "255 0 0 0""NOTES: %d", noteIndex);
+        // s2d_print_alloc(50, 150, d);
+        s2d_stop();
+
+        extern u32 funkin_timer;
+        funkin_timer++;
+
+        // char f[10];
+        // sprintf(f,
+        //     "C %04x",
+        //     ((u16*)segmented_to_virtual(note_pal_tex_0))[((u8*)segmented_to_virtual(note_tex_0))[(30 * 64) + 30] & 0xF]);
+        // print_text(50, 50, f);
     }
 
     D_8032CE74 = NULL;

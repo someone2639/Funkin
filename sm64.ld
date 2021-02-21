@@ -120,6 +120,8 @@ SECTIONS
 
       BUILD_DIR/src/game*.o(.text);
       BUILD_DIR/src/hvqm*.o(.text);
+      BUILD_DIR/src/s2d_engine*.o(.text);
+      BUILD_DIR/src/funkin*.o(.text);
 #ifdef UNF
       BUILD_DIR/src/usb*.o(.text);
 #endif
@@ -150,6 +152,12 @@ SECTIONS
       BUILD_DIR/lib/rsp.o(.data*);
       lib/PR/hvqm/hvqm2sp1.o(.data*);
 
+      BUILD_DIR/src/s2d_engine*.o(.data*);
+      BUILD_DIR/src/s2d_engine*.o(.sdata*);
+
+      BUILD_DIR/src/funkin*.o(.data*);
+      BUILD_DIR/src/funkin*.o(.sdata*);
+
       /* rodata */
       BUILD_DIR/src/game*.o(.rodata*);
 #ifdef UNF
@@ -162,6 +170,8 @@ SECTIONS
 
       BUILD_DIR/lib/rsp.o(.rodata*);
       lib/PR/hvqm/hvqm2sp1.o(.rodata*);
+      BUILD_DIR/src/s2d_engine*.o(.rodata*);
+      BUILD_DIR/src/funkin*.o(.rodata*);
    }
    END_SEG(main)
    BEGIN_NOLOAD(main)
@@ -173,6 +183,11 @@ SECTIONS
       BUILD_DIR/src/usb*.o(.sbss*);
       BUILD_DIR/src/audio*.o(.bss*);
       BUILD_DIR/src/audio*.o(.sbss*);
+      BUILD_DIR/src/s2d_engine*.o(.bss*);
+      BUILD_DIR/src/s2d_engine*.o(.sbss*);
+
+      BUILD_DIR/src/funkin*.o(.sbss*);
+      BUILD_DIR/src/funkin*.o(.bss*);
       
       */libultra_rom.a:*.o(.bss*);
       */libultra_rom.a:*.o(.sbss*);

@@ -25,3 +25,8 @@
 #include "white_particle_small/model.inc.c"
 
 #include "sparkle_animation/model.inc.c"
+
+#include "src/s2d_engine/fonts/impact.c"
+
+#include "src/funkin/spritefiles/notes.c"
+#include "src/funkin/spritefiles/longnotes.c"
