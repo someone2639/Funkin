@@ -3,6 +3,8 @@
 *.obj
 *.elf
 
+music/*
+
 # Linker output
 *.ilk
 *.exp
