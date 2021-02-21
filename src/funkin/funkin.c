@@ -44,14 +44,12 @@ void call_longnote_sprite_dl(u32 col, int idx, int x, int y, uObjMtx *buffer, in
 
     gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
 
-    Color col2 = *(Color *)&col;
-
     gDPSetEnvColor(
         gDisplayListHead++,
-        col2.c[0],
-        col2.c[1],
-        col2.c[2],
-        col2.c[3]
+        (col >> 24) & 0xFF,
+        (col >> 16) & 0xFF,
+        (col >> 8) & 0xFF,
+        0xFF
         );
 
     gDPSetCombineMode(gDisplayListHead++,
@@ -144,7 +142,7 @@ int track_array[] = {
     TRACK5,
 };
 
-#define THE_LONG_CONSTANT 44
+#define THE_LONG_CONSTANT 50
 
 #define DIST_FROM_TOP(p, i) (((int)(\
                             p[i].timer_offset - startTime\
