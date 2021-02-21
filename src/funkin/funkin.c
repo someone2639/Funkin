@@ -1,5 +1,6 @@
 #include <ultra64.h>
 #include <PR/gs2dex.h>
+#define ABSF(f) ((f) < 0 ? -(f) : (f))
 #include "s2d_engine/s2d_print.h"
 #include "notes.h"
 #include "longnotes.h"
@@ -149,6 +150,7 @@ int track_array[] = {
                             p[i].timer_offset - startTime\
                             ) / 2))
 
+// i sure hope you didnt intend to edit this part of the code :)
 #define _ 8
 
 void funkin_gen_longnote_player(int track, int y, int len, int idx) {
@@ -253,22 +255,83 @@ void funkin_draw_beatmap_from_offset(f32 startTime) {
 // 
 int score = 500;
 
-void funkin_check_inputs(void) {
+u8 isScored[MAX_SPRITE_COUNT];
+
+u16 buttonArray[4] = {
+    U_JPAD,
+    R_JPAD,
+    D_JPAD,
+    L_JPAD,
+};
+
+void funkin_check_inputs(f32 startTime) {
     for (int i = 0; i < funkin_player_notecount; i++) {
         if (funkin_notes_player[i].timer_offset < (startTime - TIMER_SWAY)) continue;
-        
-        f32 dt = funkin_notes_player[i].timer_offset - funkin_hit_timer;
-        if (dt < -40.0f) {
-            score -= 5;
+        if (isScored[i]) continue;
+
+
+        f32 dt = funkin_notes_player[i].timer_offset - startTime;
+        if (dt > 150.0f) break;
+
+        if (dt < -80.0f) {
+            if (!isScored[i]) {
+                score -= 5;
+                isScored[i] = 1;
+            }
+
+            break;
         }
+        
+        f32 dt_abs = ABSF(dt - 40.0f);
+        char t[0x50];
+        sprintf(t, "YOUR CHANCE %0.2f", dt_abs);
+        s2d_print_alloc(200, 150, t);
 
-        if (funkin_notes_player[i].timer_offset - funkin_hit_timer) {
-
+        if (gPlayer1Controller->buttonDown & buttonArray[funkin_notes_player[i].track]) {
+            if (dt_abs < 25.0f) {
+                // Sick!
+                if (!isScored[i]) {
+                    score += 50;
+                    isScored[i] = 1;
+                }
+            }
+            else if (dt_abs < 30.0f) {
+                // good!
+                if (!isScored[i]) {
+                    score += 25;
+                    isScored[i] = 1;
+                }
+            }
+            else if (dt_abs < 50.0f) {
+                // ok...
+                if (!isScored[i]) {
+                    score += 15;
+                    isScored[i] = 1;
+                }
+            }
+            else if (dt_abs < 70.0f) {
+                // bad, but i'll give it to you
+                if (!isScored[i]) {
+                    score += 5;
+                    isScored[i] = 1;
+                }
+            }
+            else {
+                // you jumped the gun
+                if (!isScored[i]) {
+                    score -= 5;
+                    isScored[i] = 1;
+                }
+            }
+            // s2d_print_alloc(100, 150, "PRESSED");
+            break;
         }
     }
 }
 
 #include "chart/chart.c"
+
+#define BPM_TO_FPS(b) ((30.0f * 60.0f) / ((f32) (b) / 1.5f))
 
 void funkin_game_loop(void) {
 
@@ -276,11 +339,15 @@ void funkin_game_loop(void) {
 
     funkin_draw_beatmap_from_offset(funkin_timer);
 
-    funkin_check_inputs();
+    funkin_check_inputs(funkin_timer);
 
-    funkin_timer += 30.0f * 60.0f / (f32)funkin_bpm;
+    funkin_timer += BPM_TO_FPS(funkin_bpm);
     // funkin_timer+=100;
     if (funkin_timer > 2500.0f) {
-        funkin_hit_timer += 30.0f * 60.0f / (f32)funkin_bpm;
+        funkin_hit_timer += BPM_TO_FPS(funkin_bpm);
     }
+
+    char t[0x40];
+    sprintf(t, "SCORE: %d", score);
+    s2d_print_alloc(50, 150, t);
 }
