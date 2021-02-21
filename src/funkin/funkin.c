@@ -148,9 +148,10 @@ int track_array[] = {
 
 #define DIST_FROM_TOP(p, i) (((int)(\
                             p[i].timer_offset - startTime\
-                            ) / 2))
+                            ) / 4))
 
 // i sure hope you didnt intend to edit this part of the code :)
+// i sure hope i dont either :)
 #define _ 8
 
 void funkin_gen_longnote_player(int track, int y, int len, int idx) {
@@ -158,7 +159,6 @@ void funkin_gen_longnote_player(int track, int y, int len, int idx) {
     int i,j;
 
     for (i = y, j = 0; i < y + len; i += THE_LONG_CONSTANT, j++) {
-        // call_note_sprite_dl(direction, color, x, y, noteBuffer, noteIndex++);
         call_longnote_sprite_dl(color_array[track], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
         if (noteIndex >= MAX_SPRITE_COUNT) {
             noteIndex = 0;
@@ -203,10 +203,9 @@ void funkin_gen_longnote_cpu(int track, int y, int len, int idx) {
 
 
 #define MAX_DRAW_TIME 2400.0f
-#define TIMER_SWAY 300.0f
+#define TIMER_SWAY 800.0f
 
 
-// TODO: see if any other notes happen
 void funkin_draw_beatmap_from_offset(f32 startTime) {
     for (int i = 0; i < funkin_cpu_notecount; i++) {
         if (funkin_notes_cpu[i].timer_offset < (startTime - TIMER_SWAY)) continue;
@@ -254,6 +253,7 @@ void funkin_draw_beatmap_from_offset(f32 startTime) {
 // insta-lose at 0
 // 
 int score = 500;
+int combo = 0;
 
 u8 isScored[MAX_SPRITE_COUNT];
 
@@ -264,6 +264,7 @@ u16 buttonArray[4] = {
     L_JPAD,
 };
 
+// TODO: how to make it only check the most recent button press
 void funkin_check_inputs(f32 startTime) {
     for (int i = 0; i < funkin_player_notecount; i++) {
         if (funkin_notes_player[i].timer_offset < (startTime - TIMER_SWAY)) continue;
@@ -282,7 +283,7 @@ void funkin_check_inputs(f32 startTime) {
             break;
         }
         
-        f32 dt_abs = ABSF(dt - 40.0f);
+        f32 dt_abs = ABSF(dt - 70.0f);
         char t[0x50];
         sprintf(t, "YOUR CHANCE %0.2f", dt_abs);
         s2d_print_alloc(200, 150, t);
@@ -293,6 +294,7 @@ void funkin_check_inputs(f32 startTime) {
                 if (!isScored[i]) {
                     score += 50;
                     isScored[i] = 1;
+                    combo++;
                 }
             }
             else if (dt_abs < 30.0f) {
@@ -300,6 +302,7 @@ void funkin_check_inputs(f32 startTime) {
                 if (!isScored[i]) {
                     score += 25;
                     isScored[i] = 1;
+                    combo++;
                 }
             }
             else if (dt_abs < 50.0f) {
@@ -307,6 +310,7 @@ void funkin_check_inputs(f32 startTime) {
                 if (!isScored[i]) {
                     score += 15;
                     isScored[i] = 1;
+                    combo++;
                 }
             }
             else if (dt_abs < 70.0f) {
@@ -314,6 +318,7 @@ void funkin_check_inputs(f32 startTime) {
                 if (!isScored[i]) {
                     score += 5;
                     isScored[i] = 1;
+                    combo++;
                 }
             }
             else {
@@ -321,6 +326,7 @@ void funkin_check_inputs(f32 startTime) {
                 if (!isScored[i]) {
                     score -= 5;
                     isScored[i] = 1;
+                    combo = 0;
                 }
             }
             // s2d_print_alloc(100, 150, "PRESSED");
@@ -331,7 +337,11 @@ void funkin_check_inputs(f32 startTime) {
 
 #include "chart/chart.c"
 
-#define BPM_TO_FPS(b) ((30.0f * 60.0f) / ((f32) (b) / 1.5f))
+#define BPM_TO_FPS(b) ((30.0f * 60.0f) / ((f32) (b) / 1.85f))
+
+int started_music_latch = 0;
+#include "audio/external.h"
+#include "seq_ids.h"
 
 void funkin_game_loop(void) {
 
@@ -343,11 +353,17 @@ void funkin_game_loop(void) {
 
     funkin_timer += BPM_TO_FPS(funkin_bpm);
     // funkin_timer+=100;
-    if (funkin_timer > 2500.0f) {
+    if (funkin_timer > 2350.0f) {
         funkin_hit_timer += BPM_TO_FPS(funkin_bpm);
+        if (started_music_latch == 0) {
+            started_music_latch = 1;
+
+            play_music(SEQ_PLAYER_LEVEL, SEQ_STREAMED_BACKGROUND, 0);
+            play_music(SEQ_PLAYER_ENV, SEQ_STREAMED_VOICES, 0);
+        }
     }
 
-    char t[0x40];
-    sprintf(t, "SCORE: %d", score);
+    char t[0x20];
+    sprintf(t, "SCORE: %d\vCOMBO: %d", score, combo);
     s2d_print_alloc(50, 150, t);
 }

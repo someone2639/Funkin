@@ -437,8 +437,8 @@ void render_game(void) {
         // s2d_print_alloc(50, 150, d);
         s2d_stop();
 
-        extern u32 funkin_timer;
-        funkin_timer++;
+        // extern u32 funkin_timer;
+        // funkin_timer++;
 
         // char f[10];
         // sprintf(f,
