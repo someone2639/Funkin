@@ -432,19 +432,12 @@ void render_game(void) {
 
         funkin_game_loop();
 
+        // s2d_render_text();
+
         // char d[0x40];
-        // sprintf(d, COLOR "255 0 0 0""NOTES: %d", noteIndex);
+        // sprintf(d, COLOR "255 0 0 0""TEST %d %d %d", 1, 2, 3);
         // s2d_print_alloc(50, 150, d);
         s2d_stop();
-
-        // extern u32 funkin_timer;
-        // funkin_timer++;
-
-        // char f[10];
-        // sprintf(f,
-        //     "C %04x",
-        //     ((u16*)segmented_to_virtual(note_pal_tex_0))[((u8*)segmented_to_virtual(note_tex_0))[(30 * 64) + 30] & 0xF]);
-        // print_text(50, 50, f);
     }
 
     D_8032CE74 = NULL;

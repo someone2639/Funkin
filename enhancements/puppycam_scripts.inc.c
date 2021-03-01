@@ -83,7 +83,7 @@ static void newcam_open_cam(struct newcam_hardpos *params) {
             newcam_open_cam_zoomed_out = 0;
         }
         else if (gMarioState->action & ACT_FLAG_ALLOW_FIRST_PERSON) {
-            newcam_yaw = -gMarioState->faceAngle[1]-0x4000;
+            newcam_yaw = -gMarioState->faceAngle[1] - 0x4000;
             params->newcam_hard_script = newcam_c_up_cam;
             set_mario_action(gMarioState, ACT_WAITING_FOR_DIALOG, 0);
         }
@@ -160,5 +160,46 @@ static void newcam_cylinder_cam(struct newcam_hardpos *params) {
 
     s16_vec_copy_from_vec3(&params->newcam_hard_camX, result);
     params->newcam_hard_camY += 500;
+}
+
+
+u8 funkin_focus_char = 0;
+
+extern const BehaviorScript bhvFunkin[];
+
+#define LOOKUP 250.0f
+
+static void newcam_funkin_cam(struct newcam_hardpos *params) {
+    // print_text_fmt_int(5, 5, "0 %d", (s16) gMarioState->pos[0]);
+    // print_text_fmt_int(5, 25, "1 %d", (s16) gMarioState->pos[1]);
+    // print_text_fmt_int(5, 45, "2 %d", (s16) gMarioState->pos[2]);
+    if (funkin_focus_char == 0) {
+        // params->newcam_hard_lookX = -2128;
+        // params->newcam_hard_lookY = -1884;
+        // params->newcam_hard_lookZ = 474;
+        params->newcam_hard_lookX = (s16) gMarioState->pos[0];
+        params->newcam_hard_lookY = (s16) gMarioState->pos[1];
+        params->newcam_hard_lookZ = (s16) gMarioState->pos[2];
+
+        params->newcam_hard_camX = (s16) gMarioState->pos[0];
+        params->newcam_hard_camY = (s16) gMarioState->pos[1] + LOOKUP;
+        
+    } else {
+        struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
+        if (bf) {
+            params->newcam_hard_lookX = (s16) bf->oPosX;
+            params->newcam_hard_lookY = (s16) bf->oPosY;
+            params->newcam_hard_lookZ = (s16) bf->oPosZ;
+
+            params->newcam_hard_camX = (s16) bf->oPosX;
+            params->newcam_hard_camY = (s16) bf->oPosY + LOOKUP;
+        }
+        // params->newcam_hard_lookX = -1539;
+        // params->newcam_hard_lookY = -1884;
+        // params->newcam_hard_lookZ = 474;
+
+        // params->newcam_hard_camX = -1539;
+        // params->newcam_hard_camY = (s16) gMarioState->pos[1] + LOOKUP;
+    }
 }
 

@@ -19,35 +19,52 @@ with open(fname) as f:
 
 bpm = beatmap['song']['notes'][-1]['bpm']
 
+globalFile = open("src/funkin/chart/chart.c", "w+")
+
+def writeline(s):
+	global globalFile
+	globalFile.write(s + "\n")
+
+
 # start printing
-print("#include \"funkin/funkin.h\"")
-print("int funkin_bpm = %d;" % bpm)
+writeline("#include \"funkin/funkin.h\"")
+writeline("int funkin_bpm = %d;" % bpm)
 
 c = 0
-print("struct funkin_note funkin_notes_player[] = {")
+writeline("struct funkin_note funkin_notes[] = {")
 for i in beatmap['song']['notes'][:-1]:
-	if i['mustHitSection']:
-		for j in i['sectionNotes']:
+	for j in i['sectionNotes']:
+		j[0] += OFFSET_LENGTH
+		j[1] %= 4
+		j.append(0)
+		c+=1
+		writeline("\t{%d, %f, %d, %d, %f}," % (
+			1 if i['mustHitSection'] else 0,
+			j[0],
+			j[1] + 4 if i['mustHitSection'] else j[1],
+			j[2],
+			j[3]
+			))
+writeline("};")
+writeline("int funkin_notecount = %d;" % c)
 
-			j[0] += OFFSET_LENGTH
+# writeline("")
 
-			c+=1
-			print("\t{%f, %d, %d}," % tuple(j))
-print("};")
-print("int funkin_cpu_notecount = %d;" % c)
+# c = 0
+# writeline("struct funkin_note funkin_notes_cpu[] = {")
+# for i in beatmap['song']['notes'][:-1]:
+# 	if not i['mustHitSection']:
+# 		for j in i['sectionNotes']:
+# 			j[0] += OFFSET_LENGTH
+# 			j[1] %= 4
+# 			j.append(0)
+# 			c += 1
+# 			writeline("\t{%f, %d, %d, %f}," % tuple(j))
+# writeline("};")
+# writeline("int funkin_player_notecount = %d;" % c)
 
-print()
 
-c = 0
-print("struct funkin_note funkin_notes_cpu[] = {")
-for i in beatmap['song']['notes'][:-1]:
-	if not i['mustHitSection']:
-		for j in i['sectionNotes']:
-			j[0] += OFFSET_LENGTH
-			c += 1
-			print("\t{%f, %d, %d}," % tuple(j))
-print("};")
-print("int funkin_player_notecount = %d;" % c)
+globalFile.close()
 
 # for i in beatmap['notes'][:-1]:
 # 	print(i)

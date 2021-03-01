@@ -48,15 +48,20 @@ typedef union Color {
 // chart structs
 
 extern int funkin_bpm;
+
+#define FUNKIN_CPU 0
+#define FUNKIN_BF  1
+
 struct funkin_note {
+	u32 who_sings;
 	f32 timer_offset;
 	u32 track;
 	u32 length;
+	f32 timeHit; // is timeReleased if length != 0
 };
-extern struct funkin_note funkin_notes_cpu[];
-extern int funkin_cpu_notecount;
+extern int funkin_notecount;
 
+extern struct funkin_note funkin_notes[];
 extern struct funkin_note funkin_notes_player[];
-extern int funkin_player_notecount;
 
 #endif

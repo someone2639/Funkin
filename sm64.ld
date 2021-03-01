@@ -40,14 +40,17 @@ OUTPUT_ARCH (mips)
 #define STANDARD_LEVEL(name) \
    BEGIN_SEG(name##_segment_7, 0x07000000) \
    { \
-      BUILD_DIR/levels/name/leveldata.szp.o(.data); \
+      BUILD_DIR/levels/name/leveldata.szp.o(.data*); \
+      BUILD_DIR/levels/name/leveldata.szp.o(.sdata*); \
       . = ALIGN(0x10); \
    } \
    END_SEG(name##_segment_7) \
    BEGIN_SEG(name, 0x0E000000) \
    { \
-      BUILD_DIR/levels/name/script.o(.data); \
-      BUILD_DIR/levels/name/geo.o(.data); \
+      BUILD_DIR/levels/name/script.o(.data*); \
+      BUILD_DIR/levels/name/script.o(.sdata*); \
+      BUILD_DIR/levels/name/geo.o(.data*); \
+      BUILD_DIR/levels/name/geo.o(.sdata*); \
    } \
    END_SEG(name)
 
@@ -179,6 +182,7 @@ SECTIONS
       BUILD_DIR/src/game*.o(.bss*);
       BUILD_DIR/src/game*.o(.sbss*);
       BUILD_DIR/src/hvqm*.o(.bss*);
+      BUILD_DIR/src/hvqm*.o(.sbss*)
       BUILD_DIR/src/usb*.o(.bss*);
       BUILD_DIR/src/usb*.o(.sbss*);
       BUILD_DIR/src/audio*.o(.bss*);
@@ -216,6 +220,7 @@ SECTIONS
    BEGIN_NOLOAD(engine)
    {
       BUILD_DIR/src/engine*.o(.bss*);
+      BUILD_DIR/src/engine*.o(.sbss*);
       . = ALIGN(0x100);
    }
    END_NOLOAD(engine)
@@ -279,7 +284,8 @@ SECTIONS
    /* use segmented addressing for behaviors */
    BEGIN_SEG(behavior, 0x13000000)
    {
-      BUILD_DIR/data/behavior_data.o(.data);
+      BUILD_DIR/data/behavior_data.o(.data*);
+      BUILD_DIR/data/behavior_data.o(.sdata*);
    }
    END_SEG(behavior)
 
@@ -288,12 +294,14 @@ SECTIONS
    {
       BUILD_DIR/src/menu*.o(.text);
       BUILD_DIR/src/menu*.o(.data*);
+      BUILD_DIR/src/menu*.o(.sdata*);
       BUILD_DIR/src/menu*.o(.rodata*);
    }
    END_SEG(goddard)
    BEGIN_NOLOAD(goddard)
    {
       BUILD_DIR/src/menu*.o(.bss*);
+      BUILD_DIR/src/menu*.o(.sbss*);
    }
    END_NOLOAD(goddard)
 

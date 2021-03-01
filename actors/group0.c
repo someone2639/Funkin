@@ -30,3 +30,5 @@
 
 #include "src/funkin/spritefiles/notes.c"
 #include "src/funkin/spritefiles/longnotes.c"
+
+#include "bf/model.inc.c"

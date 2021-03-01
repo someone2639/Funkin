@@ -14,6 +14,14 @@ u32 color_array[] = {
     BLU_COL,
     TEMPL_COL,
 };
+
+u32 color_array2[] = {
+    0x00FF00FF,
+    0xFF0000FF,
+    TRQ_COL,
+    0x0000FFFF,
+};
+
 uObjMtx noteBuffer[MAX_SPRITE_COUNT];
 u32 envColorBuffer[MAX_SPRITE_COUNT];
 u16 palBuffer[MAX_SPRITE_COUNT][16];
@@ -21,7 +29,8 @@ uObjTxtrTLUT_t tlutBuffer[MAX_SPRITE_COUNT];
 int noteIndex = 0;
 
 // gameplay memes
-u32 held_lens[4] = {0, 0, 0, 0};
+f32 held_lens[4] = {0, 0, 0, 0};
+f32 held_latch[4] = {0,0,0,0};
 
 void setup_mtx(uObjMtx *buf, int x, int y, int scale) {
     buf->m.A = 0x8000;
@@ -46,9 +55,9 @@ void call_longnote_sprite_dl(u32 col, int idx, int x, int y, uObjMtx *buffer, in
 
     gDPSetEnvColor(
         gDisplayListHead++,
-        (col >> 24) & 0xFF,
-        (col >> 16) & 0xFF,
-        (col >> 8) & 0xFF,
+        (col >> 24) & 0xFF - 20,
+        (col >> 16) & 0xFF - 20,
+        (col >> 8) & 0xFF - 20,
         0xFF
         );
 
@@ -142,7 +151,7 @@ int track_array[] = {
     TRACK5,
 };
 
-#define THE_LONG_CONSTANT 50
+#define THE_LONG_CONSTANT 64
 
 #define DIST_FROM_TOP(p, i) (((int)(\
                             p[i].timer_offset - startTime\
@@ -152,48 +161,48 @@ int track_array[] = {
 // i sure hope i dont either :)
 #define _ 8
 
-void funkin_gen_longnote_player(int track, int y, int len, int idx) {
-    int start = y;
-    int i,j;
+// void funkin_gen_longnote_player(int track, int y, int len, int idx) {
+//     int start = y;
+//     int i,j;
 
-    for (i = y, j = 0; i < y + len; i += THE_LONG_CONSTANT, j++) {
-        call_longnote_sprite_dl(color_array[track], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
-        if (noteIndex >= MAX_SPRITE_COUNT) {
-            noteIndex = 0;
-        }
-    }
-    call_longnote_sprite_dl(color_array[track], 1, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
-    if (noteIndex >= MAX_SPRITE_COUNT) {
-        noteIndex = 0;
-    }
-    funkin_draw_note(track_array[funkin_notes_player[idx].track + 4],
-                         y,
-                         funkin_notes_player[idx].track,
-                         funkin_notes_player[idx].track
-                         );
-}
+//     for (i = y, j = 0; i < y + len; i += THE_LONG_CONSTANT, j++) {
+//         call_longnote_sprite_dl(color_array2[track], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
+//         if (noteIndex >= MAX_SPRITE_COUNT) {
+//             noteIndex = 0;
+//         }
+//     }
+//     call_longnote_sprite_dl(color_array2[track], 1, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
+//     if (noteIndex >= MAX_SPRITE_COUNT) {
+//         noteIndex = 0;
+//     }
+//     funkin_draw_note(track_array[funkin_notes_player[idx].track + 4],
+//                          y,
+//                          funkin_notes_player[idx].track,
+//                          funkin_notes_player[idx].track
+//                          );
+// }
 
-void funkin_gen_longnote_cpu(int track, int y, int len, int idx) {
+void funkin_gen_longnote(int track, int y, int len, int idx) {
     int start = y;
     int i,j;
 
     for (i = y, j = 0; i < y + len; i += THE_LONG_CONSTANT, j++) {
         // call_note_sprite_dl(direction, color, x, y, noteBuffer, noteIndex++);
-        call_longnote_sprite_dl(color_array[track], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
+        call_longnote_sprite_dl(color_array2[track], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
         if (noteIndex >= MAX_SPRITE_COUNT) {
             noteIndex = 0;
         }
     }
-    call_longnote_sprite_dl(color_array[track], 1,
+    call_longnote_sprite_dl(color_array2[track % 4], 1,
         track + _,
         y + (j * 11) + _, noteBuffer, noteIndex++);
     if (noteIndex >= MAX_SPRITE_COUNT) {
         noteIndex = 0;
     }
-    funkin_draw_note(track_array[funkin_notes_cpu[idx].track],
+    funkin_draw_note(track_array[funkin_notes[idx].track],
                          y,
-                         funkin_notes_cpu[idx].track,
-                         funkin_notes_cpu[idx].track
+                         funkin_notes[idx].track % 4,
+                         funkin_notes[idx].track % 4
                          );
 }
 
@@ -205,42 +214,21 @@ void funkin_gen_longnote_cpu(int track, int y, int len, int idx) {
 
 
 void funkin_draw_beatmap_from_offset(f32 startTime) {
-    for (int i = 0; i < funkin_cpu_notecount; i++) {
-        if (funkin_notes_cpu[i].timer_offset < (startTime - TIMER_SWAY)) continue;
-        if (funkin_notes_cpu[i].timer_offset > (startTime + MAX_DRAW_TIME)) break;
+    for (int i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset < (startTime - TIMER_SWAY)) continue;
+        if (funkin_notes[i].timer_offset > (startTime + MAX_DRAW_TIME)) break;
 
-        if (funkin_notes_cpu[i].length == 0) {
-            funkin_draw_note(track_array[funkin_notes_cpu[i].track],
-                         DIST_FROM_TOP(funkin_notes_cpu, i),
-                         funkin_notes_cpu[i].track,
-                         funkin_notes_cpu[i].track
+        if (funkin_notes[i].length == 0) {
+            funkin_draw_note(track_array[funkin_notes[i].track],
+                         DIST_FROM_TOP(funkin_notes, i),
+                         funkin_notes[i].track % 4,
+                         funkin_notes[i].track % 4
                          );
         } else {
-            funkin_gen_longnote_cpu(
-                         track_array[funkin_notes_cpu[i].track],
-                         DIST_FROM_TOP(funkin_notes_cpu, i),
-                         funkin_notes_cpu[i].length,
-                         i
-                         );
-        }
-    }
-
-    for (int i = 0; i < funkin_player_notecount; i++) {
-        if (funkin_notes_player[i].timer_offset < (startTime - TIMER_SWAY)) continue;
-        if (funkin_notes_player[i].timer_offset > (startTime + MAX_DRAW_TIME)) break;
-
-        if (funkin_notes_player[i].length == 0) {
-            funkin_draw_note(track_array[funkin_notes_player[i].track + 4],
-                         DIST_FROM_TOP(funkin_notes_player, i),
-                         funkin_notes_player[i].track,
-                         funkin_notes_player[i].track
-                         );
-        }
-        else {
-            funkin_gen_longnote_player(
-                         track_array[funkin_notes_player[i].track + 4],
-                         DIST_FROM_TOP(funkin_notes_player, i),
-                         funkin_notes_player[i].length,
+            funkin_gen_longnote(
+                         track_array[funkin_notes[i].track],
+                         DIST_FROM_TOP(funkin_notes, i),
+                         funkin_notes[i].length,
                          i
                          );
         }
@@ -262,74 +250,15 @@ u16 buttonArray[4] = {
     L_JPAD,
 };
 
-// TODO: how to make it only check the most recent button press
-void funkin_check_inputs(f32 startTime) {
-    for (int i = 0; i < funkin_player_notecount; i++) {
-        if (funkin_notes_player[i].timer_offset < (startTime - TIMER_SWAY)) continue;
-        if (isScored[i]) continue;
+// TODO: rewrite
+extern u8 funkin_focus_char;
+#include "object_fields.h"
+#include "behavior_data.h"
 
+void funkin_handle_ready_notes(f32 startTime) {
+    struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
+    for (int i = 0; i < funkin_notecount; i++) {
 
-        f32 dt = funkin_notes_player[i].timer_offset - startTime;
-        if (dt > 150.0f) break;
-
-        if (dt < -80.0f) {
-            if (!isScored[i]) {
-                score -= 5;
-                isScored[i] = 1;
-            }
-
-            break;
-        }
-        
-        f32 dt_abs = ABSF(dt - 70.0f);
-        char t[0x50];
-        sprintf(t, "YOUR CHANCE %0.2f", dt_abs);
-        s2d_print_alloc(200, 150, t);
-
-        if (gPlayer1Controller->buttonDown & buttonArray[funkin_notes_player[i].track]) {
-            if (dt_abs < 25.0f) {
-                // Sick!
-                if (!isScored[i]) {
-                    score += 50;
-                    isScored[i] = 1;
-                    combo++;
-                }
-            }
-            else if (dt_abs < 30.0f) {
-                // good!
-                if (!isScored[i]) {
-                    score += 25;
-                    isScored[i] = 1;
-                    combo++;
-                }
-            }
-            else if (dt_abs < 50.0f) {
-                // ok...
-                if (!isScored[i]) {
-                    score += 15;
-                    isScored[i] = 1;
-                    combo++;
-                }
-            }
-            else if (dt_abs < 70.0f) {
-                // bad, but i'll give it to you
-                if (!isScored[i]) {
-                    score += 5;
-                    isScored[i] = 1;
-                    combo++;
-                }
-            }
-            else {
-                // you jumped the gun
-                if (!isScored[i]) {
-                    score -= 5;
-                    isScored[i] = 1;
-                    combo = 0;
-                }
-            }
-            // s2d_print_alloc(100, 150, "PRESSED");
-            break;
-        }
     }
 }
 
@@ -341,13 +270,42 @@ int started_music_latch = 0;
 #include "audio/external.h"
 #include "seq_ids.h"
 
+void funkin_update_buttons_held(void) {
+    for (int i = 0; i < 4; i++) {
+        if (gPlayer1Controller->buttonDown & buttonArray[i]) {
+            held_lens[i] += BPM_TO_FPS(funkin_bpm);
+        } else {
+            if (held_lens[i] != 0.0f) {
+                held_latch[i] = held_lens[i];
+            }
+            held_lens[i] = 0.0f;
+        }
+    }
+}
+
+
+void funkin_handle_switchcase(void) {
+    struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
+    if (bf) {
+        if (funkin_focus_char) {
+            bf->oAnimState = 3;
+        } else {
+            bf->oAnimState = 0;
+        }
+    }
+}
+
 void funkin_game_loop(void) {
 
     funkin_hud();
 
     funkin_draw_beatmap_from_offset(funkin_timer);
 
-    funkin_check_inputs(funkin_timer);
+    funkin_update_buttons_held();
+
+    funkin_handle_ready_notes(funkin_timer);
+
+    funkin_handle_switchcase();
 
     funkin_timer += BPM_TO_FPS(funkin_bpm);
     // funkin_timer+=100;
@@ -361,7 +319,12 @@ void funkin_game_loop(void) {
         }
     }
 
-    char t[0x20];
+    char t[0x40];
     sprintf(t, "SCORE: %d\vCOMBO: %d", score, combo);
+
+    char t2[0x40];
+    sprintf(t2, "A%.2f %.2f %.2f %.2f", held_lens[0], held_lens[1], held_lens[2], held_lens[3]);
     s2d_print_alloc(50, 150, t);
+    s2d_print_alloc(50, 180, t2);
 }
+

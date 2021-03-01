@@ -332,8 +332,8 @@ void newcam_diagnostics(void)
 static void newcam_stick_input(void)
 {
     #ifdef TARGET_N64
-    newcam_stick2[0] = gPlayer2Controller->rawStickX;
-    newcam_stick2[1] = gPlayer2Controller->rawStickY;
+    newcam_stick2[0] = 1;
+    newcam_stick2[1] = 1;
     #else
     newcam_stick2[0] = rightstick[0]*0.625;
     newcam_stick2[1] = rightstick[1]*0.625;
@@ -811,10 +811,10 @@ static void newcam_update_values(void)
         }
         else
         {
-        if (gMarioState->intendedMag > 0 && gMarioState->vel[1] == 0 && newcam_modeflags & NC_FLAG_XTURN && !(newcam_modeflags & NC_FLAG_8D) && !(newcam_modeflags & NC_FLAG_4D))
-            newcam_yaw = (approach_s16_symmetric(newcam_yaw,-gMarioState->faceAngle[1]-0x4000,((newcam_turnaggression*(ABS(gPlayer1Controller->rawStickX/10)))*(ABS(gMarioState->forwardVel)/32))));
-        else
-            newcam_turnwait = 10;
+        // if (gMarioState->intendedMag > 0 && gMarioState->vel[1] == 0 && newcam_modeflags & NC_FLAG_XTURN && !(newcam_modeflags & NC_FLAG_8D) && !(newcam_modeflags & NC_FLAG_4D))
+            newcam_yaw = (approach_s16_symmetric(newcam_yaw,-gMarioState->faceAngle[1]-0x4000,((newcam_turnaggression*(ABS(10/10)))*(ABS(32)/32))));
+        // else
+            // newcam_turnwait = 10;
         }
 
         if (newcam_modeflags & NC_FLAG_SLIDECORRECT)
@@ -842,10 +842,10 @@ static void newcam_update_values(void)
         if (waterflag && newcam_modeflags & NC_FLAG_XTURN)
         {
             newcam_yaw = (approach_s16_symmetric(newcam_yaw,-gMarioState->faceAngle[1]-0x4000,(gMarioState->forwardVel*128)));
-            if ((signed)gMarioState->forwardVel > 1)
+            // if ((signed)gMarioState->forwardVel > 1)
                 newcam_tilt = (approach_s16_symmetric(newcam_tilt,(-gMarioState->faceAngle[0]*0.8)+3000,(gMarioState->forwardVel*32)));
-            else
-                newcam_tilt = (approach_s16_symmetric(newcam_tilt,3000,32));
+            // else
+                // newcam_tilt = (approach_s16_symmetric(newcam_tilt,3000,32));
         }
 }
 
@@ -916,9 +916,22 @@ static void newcam_position_cam(void)
     shakeX = gLakituState.shakeMagnitude[1];
     shakeY = gLakituState.shakeMagnitude[0];
     //Fetch Mario's current position. Not hardcoded just for the sake of flexibility, though this specific bit is temp, because it won't always want to be focusing on Mario.
-    newcam_pos_target[0] = gMarioState->pos[0];
-    newcam_pos_target[1] = gMarioState->pos[1]+newcam_extheight;
-    newcam_pos_target[2] = gMarioState->pos[2];
+    extern u8 funkin_focus_char;
+    if (funkin_focus_char == 0) {
+        newcam_pos_target[0] = (s16) gMarioState->pos[0];
+        newcam_pos_target[1] = (s16) gMarioState->pos[1] + 150.0f;
+        newcam_pos_target[2] = (s16) gMarioState->pos[2];
+    } else {
+        struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
+        if (bf) {
+            newcam_pos_target[0] = (s16) bf->oPosX;
+            newcam_pos_target[1] = (s16) bf->oPosY + 150.0f;
+            newcam_pos_target[2] = (s16) bf->oPosZ;
+        }
+    }
+    // newcam_pos_target[0] = gMarioState->pos[0];
+    // newcam_pos_target[1] = gMarioState->pos[1]+newcam_extheight;
+    // newcam_pos_target[2] = gMarioState->pos[2];
     //These will set the position of the camera to where Mario is supposed to be, minus adjustments for where the camera should be, on top of.
     if (newcam_modeflags & NC_FLAG_POSX)
         newcam_pos[0] = newcam_pos_target[0]+lengthdir_x(lengthdir_x(newcam_distance,newcam_tilt+shakeX),newcam_yaw+shakeY);

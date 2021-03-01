@@ -1783,29 +1783,7 @@ enum {
 };
 
 static s32 act_intro_cutscene(struct MarioState *m) {
-    switch (m->actionArg) {
-        case INTRO_CUTSCENE_HIDE_HUD_AND_MARIO:
-            intro_cutscene_hide_hud_and_mario(m);
-            break;
-        case INTRO_CUTSCENE_PEACH_LAKITU_SCENE:
-            intro_cutscene_peach_lakitu_scene(m);
-            break;
-        case INTRO_CUTSCENE_RAISE_PIPE:
-            intro_cutscene_raise_pipe(m);
-            break;
-        case INTRO_CUTSCENE_JUMP_OUT_OF_PIPE:
-            intro_cutscene_jump_out_of_pipe(m);
-            break;
-        case INTRO_CUTSCENE_LAND_OUTSIDE_PIPE:
-            intro_cutscene_land_outside_pipe(m);
-            break;
-        case INTRO_CUTSCENE_LOWER_PIPE:
-            intro_cutscene_lower_pipe(m);
-            break;
-        case INTRO_CUTSCENE_SET_MARIO_TO_IDLE:
-            intro_cutscene_set_mario_to_idle(m);
-            break;
-    }
+    intro_cutscene_set_mario_to_idle(m);
     return FALSE;
 }
 
