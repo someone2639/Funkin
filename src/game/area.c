@@ -432,7 +432,7 @@ void render_game(void) {
 
         funkin_game_loop();
 
-        // s2d_render_text();
+        s2d_handle_deferred();
 
         // char d[0x40];
         // sprintf(d, COLOR "255 0 0 0""TEST %d %d %d", 1, 2, 3);

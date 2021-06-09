@@ -344,4 +344,6 @@ extern const Gfx white_particle_small_unused_dl[];
 
 #include "bf/geo_header.h"
 
+#include "boombox/geo_header.h"
+
 #endif

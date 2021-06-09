@@ -6,6 +6,9 @@
 #include "longnotes.h"
 #include "funkin.h"
 #include "game/game_init.h"
+#include "game/object_list_processor.h"
+
+#define HEALTH_START 200
 
 u32 color_array[] = {
     GRN_COL,
@@ -32,7 +35,7 @@ int noteIndex = 0;
 f32 held_lens[4] = {0, 0, 0, 0};
 f32 held_latch[4] = {0,0,0,0};
 
-void setup_mtx(uObjMtx *buf, int x, int y, int scale) {
+void setup_mtx(uObjMtx *buf, int x, int y) {
     buf->m.A = 0x8000;
     buf->m.D = 0x8000;
 
@@ -40,7 +43,7 @@ void setup_mtx(uObjMtx *buf, int x, int y, int scale) {
     buf->m.Y = y << 2;
 }
 
-void setup_mtx2(uObjMtx *buf, int x, int y, int scale) {
+void setup_mtx2(uObjMtx *buf, int x, int y) {
     buf->m.A = 0x4000;
     buf->m.D = 0x4000;
 
@@ -55,9 +58,9 @@ void call_longnote_sprite_dl(u32 col, int idx, int x, int y, uObjMtx *buffer, in
 
     gDPSetEnvColor(
         gDisplayListHead++,
-        (col >> 24) & 0xFF - 20,
-        (col >> 16) & 0xFF - 20,
-        (col >> 8) & 0xFF - 20,
+        ((col >> 24) & 0xFF) - 20,
+        ((col >> 16) & 0xFF) - 20,
+        ((col >>  8) & 0xFF) - 20,
         0xFF
         );
 
@@ -69,7 +72,7 @@ void call_longnote_sprite_dl(u32 col, int idx, int x, int y, uObjMtx *buffer, in
     gDPSetTextureLUT(gDisplayListHead++, G_TT_NONE);
     gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU | G_OBJRM_BILERP);
     gSPObjLoadTxtr(gDisplayListHead++, &longnote_tex[idx]);
-    setup_mtx2(&buffer[buf_idx], x, y, 1);
+    setup_mtx2(&buffer[buf_idx], x, y);
     gSPObjMatrix(gDisplayListHead++, &buffer[buf_idx]);
     gSPObjSprite(gDisplayListHead++, &longnote_obj);
     gDPPipeSync(gDisplayListHead++);
@@ -83,8 +86,8 @@ void assign_tlut(int index, u32 color) {
     bcopy(pal, palBuffer[index], sizeof(u16) * 16);
 
     bcopy(tlut, &tlutBuffer[index], sizeof(tlutBuffer[0]));
-    tlutBuffer[index].image = palBuffer[index];
-    tlutBuffer[index].flag = palBuffer[index];
+    tlutBuffer[index].image = (u64 *) palBuffer[index];
+    tlutBuffer[index].flag  = (u32  ) palBuffer[index];
 
     palBuffer[index][0xC] = GPACK_RGBA5551 (
         ((color) >> 24) & 0xFF,
@@ -104,7 +107,7 @@ void call_note_sprite_dl(int idx, int color, int x, int y, uObjMtx *buffer, int 
 
     assign_tlut(buf_idx, color_array[color]);
     gSPObjLoadTxtr(gDisplayListHead++, &tlutBuffer[buf_idx]);
-    setup_mtx(&buffer[buf_idx], x, y, 1);
+    setup_mtx(&buffer[buf_idx], x, y);
     gSPObjMatrix(gDisplayListHead++, &buffer[buf_idx]);
     gSPObjSprite(gDisplayListHead++, &note_obj);
 }
@@ -115,6 +118,13 @@ void funkin_draw_note(int x, int y, int color, int direction) {
         noteIndex = 0;
     }
 }
+
+funkin_health = HEALTH_START;
+
+#include "spritefiles/maro.h"
+#include "spritefiles/iconbf.h"
+
+#define VS_OFFSET -00
 
 void funkin_hud(void) {
     #define HUD_Y 20
@@ -130,13 +140,26 @@ void funkin_hud(void) {
     funkin_draw_note(TRACK8, HUD_Y, TEMPL, RIGHT);    
 
     #undef HUD_Y
-}
 
-f32 funkin_timer = 0;
-f32 funkin_hit_timer = 0;
+    #define E(spr) ((uObjSprite*)segmented_to_virtual(spr))
+
+    E(&maro_obj)->s.objX = (240 - ((funkin_health / 2) + VS_OFFSET)) << 2;
+    E(&iconbf_obj)->s.objX = (240 - ((funkin_health / 2) + (VS_OFFSET - 24))) << 2;
+
+    E(&maro_obj)->s.objY = 180 << 2;
+    E(&iconbf_obj)->s.objY = 180 << 2;
+
+    E(&maro_obj)->s.scaleW = E(&maro_obj)->s.scaleH = 2 << 10;
+    E(&iconbf_obj)->s.scaleW = E(&iconbf_obj)->s.scaleH = 2 << 10;
+
+
+}
+#define TIMER_START_OFFSET 0
+f32 funkin_timer = TIMER_START_OFFSET;
+f32 funkin_hit_timer = TIMER_START_OFFSET;
 void funkin_reset_timers(void) {
-    funkin_timer = 0;
-    funkin_hit_timer = 0;
+    funkin_timer = TIMER_START_OFFSET;
+    funkin_hit_timer = TIMER_START_OFFSET;
 }
 
 int track_array[] = {
@@ -159,36 +182,14 @@ int track_array[] = {
 
 // i sure hope you didnt intend to edit this part of the code :)
 // i sure hope i dont either :)
+// update: i had to edit this part of the code :)
 #define _ 8
 
-// void funkin_gen_longnote_player(int track, int y, int len, int idx) {
-//     int start = y;
-//     int i,j;
-
-//     for (i = y, j = 0; i < y + len; i += THE_LONG_CONSTANT, j++) {
-//         call_longnote_sprite_dl(color_array2[track], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
-//         if (noteIndex >= MAX_SPRITE_COUNT) {
-//             noteIndex = 0;
-//         }
-//     }
-//     call_longnote_sprite_dl(color_array2[track], 1, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
-//     if (noteIndex >= MAX_SPRITE_COUNT) {
-//         noteIndex = 0;
-//     }
-//     funkin_draw_note(track_array[funkin_notes_player[idx].track + 4],
-//                          y,
-//                          funkin_notes_player[idx].track,
-//                          funkin_notes_player[idx].track
-//                          );
-// }
-
 void funkin_gen_longnote(int track, int y, int len, int idx) {
-    int start = y;
     int i,j;
 
     for (i = y, j = 0; i < y + len; i += THE_LONG_CONSTANT, j++) {
-        // call_note_sprite_dl(direction, color, x, y, noteBuffer, noteIndex++);
-        call_longnote_sprite_dl(color_array2[track], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
+        call_longnote_sprite_dl(color_array2[track % 4], 0, track + _, y + (j * 11) + _, noteBuffer, noteIndex++);
         if (noteIndex >= MAX_SPRITE_COUNT) {
             noteIndex = 0;
         }
@@ -212,90 +213,513 @@ void funkin_gen_longnote(int track, int y, int len, int idx) {
 #define MAX_DRAW_TIME 2400.0f
 #define TIMER_SWAY 800.0f
 
+#define COND_DRAW funkin_notes[i].who_sings <= FUNKIN_BF
+// #define COND_DRAW 1
+
 
 void funkin_draw_beatmap_from_offset(f32 startTime) {
     for (int i = 0; i < funkin_notecount; i++) {
         if (funkin_notes[i].timer_offset < (startTime - TIMER_SWAY)) continue;
         if (funkin_notes[i].timer_offset > (startTime + MAX_DRAW_TIME)) break;
 
-        if (funkin_notes[i].length == 0) {
-            funkin_draw_note(track_array[funkin_notes[i].track],
-                         DIST_FROM_TOP(funkin_notes, i),
-                         funkin_notes[i].track % 4,
-                         funkin_notes[i].track % 4
-                         );
-        } else {
-            funkin_gen_longnote(
-                         track_array[funkin_notes[i].track],
-                         DIST_FROM_TOP(funkin_notes, i),
-                         funkin_notes[i].length,
-                         i
-                         );
+        if (COND_DRAW) {
+            if (funkin_notes[i].length == 0) {
+                funkin_draw_note(track_array[funkin_notes[i].track],
+                             DIST_FROM_TOP(funkin_notes, i),
+                             funkin_notes[i].track % 4,
+                             funkin_notes[i].track % 4
+                             );
+            } else {
+                funkin_gen_longnote(
+                             track_array[funkin_notes[i].track],
+                             DIST_FROM_TOP(funkin_notes, i),
+                             funkin_notes[i].length,
+                             i
+                             );
+            }
         }
     }
 }
 
-// keep 500+ by the end to win
-// insta-lose at 0
-// 
-int score = 500;
+// TODO: handle that HUD bar thing
+int score = 0;
 int combo = 0;
 
 u8 isScored[MAX_SPRITE_COUNT];
 
 u16 buttonArray[4] = {
+    U_CBUTTONS,
+    R_CBUTTONS,
+    D_CBUTTONS,
+    L_CBUTTONS,
+};
+
+u16 buttonArray2[4] = {
     U_JPAD,
     R_JPAD,
     D_JPAD,
     L_JPAD,
 };
 
-// TODO: rewrite
+u16 buttonArraySwitchCaseLUT[] = {
+    L_CBUTTONS,
+    U_CBUTTONS,
+    D_CBUTTONS,
+    R_CBUTTONS,
+    0,
+    0,
+};
+
 extern u8 funkin_focus_char;
 #include "object_fields.h"
 #include "behavior_data.h"
 
-void funkin_handle_ready_notes(f32 startTime) {
+void funkin_handle_camera(f32 startTime) {
     struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
-    for (int i = 0; i < funkin_notecount; i++) {
+    int i;
+    for (i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset + funkin_notes[i].length > startTime) break;
+    }
 
+    if (i == funkin_notecount - 1) {
+        funkin_focus_char = FUNKIN_BF;
+        return;
+    }
+
+    if (funkin_notes[i].who_sings == FUNKIN_BF) {
+        funkin_focus_char = 1;
+    } else {
+        funkin_focus_char = 0;
+    }
+}
+
+void funkin_record_note_hit_timings(f32 startTime) {
+    int i;
+    for (i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset > startTime) break;
+    }
+
+    if (funkin_notes[i].who_sings == FUNKIN_BF) {
+        f32 l = funkin_notes[i].length;
+        if (gPlayer1Controller->buttonPressed & buttonArray[funkin_notes[i].track % 4]
+         || gPlayer1Controller->buttonPressed & buttonArray2[funkin_notes[i].track % 4]
+        ) {
+            funkin_notes[i].timeHit = startTime;
+        }
+        if (funkin_notes[i].timeHit == 0.0f &&
+            (gPlayer1Controller->buttonDown & buttonArray[funkin_notes[i].track % 4]
+          || gPlayer1Controller->buttonPressed & buttonArray2[funkin_notes[i].track % 4]
+        )) {
+            funkin_notes[i].timeHit = startTime;
+        }
+    }
+}
+
+// TODO: yeah figure this out
+// i need to record release timings of notes well after they've left the view
+// of the hit function
+void funkin_record_note_release_timings(f32 startTime) {
+    int i;
+    for (i = 0; i < funkin_notecount; i++) {
+        if ((funkin_notes[i].timer_offset + funkin_notes[i].length) > startTime) break;
+    }
+
+    if (funkin_notes[i].who_sings == FUNKIN_BF) {
+        f32 l = funkin_notes[i].length;
+        if (funkin_notes[i].timeHit != 0.0f
+            && (gPlayer1Controller->buttonDown    & buttonArray[funkin_notes[i].track % 4]) == 0
+            && (gPlayer1Controller->buttonPressed & buttonArray[funkin_notes[i].track % 4]) == 0) {
+            funkin_notes[i].timeReleased = startTime;
+        }
+    }
+}
+
+
+ 
+static int funkin_score_dt(f32 dt) {
+    int toReturn;
+
+    if      (dt > 150.0f) toReturn = -10;
+    else if (dt > 100.0f) toReturn =  -5;
+    else if (dt >  80.0f) toReturn =   1;
+    else if (dt >  50.0f) toReturn =   5;
+    else if (dt >  40.0f) toReturn =  10;
+    else if (dt >  20.0f) toReturn =  20;
+    else if (dt >  10.0f) toReturn =  30;
+    else                  toReturn =  50;
+
+    if (toReturn > 0) {
+        combo++;
+        funkin_health += 5;
+    } else {
+        combo = 0;
+        funkin_health -= 5;
+    }
+
+    return toReturn;
+}
+#include "s2d_engine/s2d_print.h"
+
+// calculates the entire score every frame
+// this is the only way i could do this
+#define LEEWAY -50.0f
+void funkin_calculate_score(f32 startTime) {
+    funkin_health = HEALTH_START;
+
+    for (int i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset > startTime) break;
+
+        if (funkin_notes[i].who_sings == FUNKIN_BF) {
+            f32 dt = ABSF(funkin_notes[i].timeHit - funkin_notes[i].timer_offset - LEEWAY);
+            if (funkin_notes[i].length == 0) {
+                score += funkin_score_dt(dt);
+                if (score < 0) score = 0;
+            } else {
+                // f32 dlength = ABSF(
+                //     ((f32) funkin_notes[i].length)
+                //     - (
+                //         funkin_notes[i].timeReleased
+                //         - funkin_notes[i].timer_offset
+                //       )
+                //     - LEEWAY
+                //     );
+
+                score += funkin_score_dt(dt);
+                      // +   funkin_score_dt(dlength));
+                if (score < 0) score = 0;
+            }
+        }
+    }
+    if (score < 0) score = 0;
+    if (funkin_health > 400) funkin_health = 400;
+}
+
+#define COMBO_SWAY 110.0f
+
+void funkin_calculate_combo(f32 startTime) {
+    for (int i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset > startTime) break;
+
+        if (funkin_notes[i].who_sings == FUNKIN_BF) {
+            f32 dt = ABSF(funkin_notes[i].timeHit - funkin_notes[i].timer_offset - LEEWAY);
+            if (funkin_notes[i].length == 0) {
+                if (dt <= 100.0f) combo++;
+                else combo = 0;
+            } else {
+                // f32 dlength = ABSF(
+                //     ((f32) funkin_notes[i].length)
+                //     - (funkin_notes[i].timeReleased - funkin_notes[i].timer_offset)
+                //     - LEEWAY
+                //     );
+
+                if (dt <= 100.0f) combo++;
+                else combo = 0;
+            }
+        }
     }
 }
 
 #include "chart/chart.c"
 
-#define BPM_TO_FPS(b) ((30.0f * 60.0f) / ((f32) (b) / 1.85f))
+#define BPM_TO_FPS(b) ((60.0f / b) * 100.0f)
 
 int started_music_latch = 0;
 #include "audio/external.h"
 #include "seq_ids.h"
 
+// if you're smart pls implement this :)
 void funkin_update_buttons_held(void) {
-    for (int i = 0; i < 4; i++) {
-        if (gPlayer1Controller->buttonDown & buttonArray[i]) {
-            held_lens[i] += BPM_TO_FPS(funkin_bpm);
-        } else {
-            if (held_lens[i] != 0.0f) {
-                held_latch[i] = held_lens[i];
+    // for (int i = 0; i < 4; i++) {
+    //     if (gPlayer1Controller->buttonDown & buttonArray[i]) {
+    //         held_lens[i] += BPM_TO_FPS(funkin_bpm);
+    //     } else {
+    //         if (held_lens[i] != 0.0f) {
+    //             held_latch[i] = held_lens[i];
+    //         }
+    //         held_lens[i] = 0.0f;
+    //     }
+    // }
+}
+
+#include "spritefiles/ready.h"
+#include "spritefiles/set.h"
+#include "spritefiles/go.h"
+#include "spritefiles/lose.h"
+
+Gfx *countdownPtrs[] = {
+    NULL,
+    NULL,
+    ready_bg_dl,
+    set_bg_dl,
+    go_bg_dl,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+int funkin_countdown = 0;
+
+
+void funkin_draw_countdown(void) {
+    if (countdownPtrs[funkin_countdown] != NULL) {
+        gSPDisplayList(gDisplayListHead++, ready_init_dl);
+        gSPDisplayList(gDisplayListHead++, countdownPtrs[funkin_countdown]);
+    }
+}
+
+
+void funkin_choose_bf_model(void) {
+    struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
+    if (bf) {
+        u16 p = gPlayer1Controller->buttonPressed;
+        u16 d = gPlayer1Controller->buttonDown;
+        int i;
+        for (i = 0; i < ARRAY_COUNT(buttonArraySwitchCaseLUT); i++) {
+            if (d & buttonArraySwitchCaseLUT[i]) {
+                break;
             }
-            held_lens[i] = 0.0f;
+            if (p & buttonArraySwitchCaseLUT[i]) {
+                break;
+            }
+        }
+        bf->oAnimState = (i == ARRAY_COUNT(buttonArraySwitchCaseLUT) - 1) ? 0 : i + 1;
+    }
+}
+#include "mario_animation_ids.h"
+#include "game/level_update.h"
+
+u8 mario_anim_table[] = {
+    MARIO_ANIM_IDLE_WITH_LIGHT_OBJ,
+    MARIO_ANIM_SLIDEJUMP,
+    MARIO_ANIM_FIRST_PUNCH,
+    MARIO_ANIM_BREAKDANCE,
+    MARIO_ANIM_SOFT_BACK_KB,
+};
+
+int j = 9;
+
+u8 isPlaying[] = {0,0,0,0,0,0,0,0};
+
+static void funkin_cpu_playing_helper(f32 startTime) {
+    // for (int i = 0; i < 8; i++) {
+    //     isPlaying[i] = 0;
+    // }
+    for (int i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset > startTime) break;
+
+        // if (funkin_notes[i].timer_offset < startTime &&
+        //    (funkin_notes[i].timer_offset + funkin_notes[i].length > startTime)) {
+        //     isPlaying[funkin_notes[i].track] = 2;
+        // } else 
+        if (ABSF(funkin_notes[i].timer_offset - startTime) < 40.0f){
+            if (funkin_notes[i].who_sings <= FUNKIN_BF) {
+                isPlaying[funkin_notes[i].track] = 1;
+            }
+        } else {
+            isPlaying[funkin_notes[i].track] = 0;
+        }
+    }
+
+    // char playing_str[0x50];
+    // sprintf(playing_str, "E %d %d %d %d", isPlaying[0],
+    //                                       isPlaying[1],
+    //                                       isPlaying[2],
+    //                                       isPlaying[3]
+    //                                         );
+    // s2d_print_alloc(50, 150, playing_str);
+}
+
+// TODO: fix n' rewrite
+
+int marioIsAnimating = 0;
+int tableEntry = 0;
+
+void funkin_set_mario_anim(f32 startTime) {
+    int i;
+    int pressed = -1;
+
+    funkin_cpu_playing_helper(startTime);
+
+    for (i = 0; i < 4; i++) {
+        if (isPlaying[i] == 1) {
+            pressed = i + 1;
+            tableEntry = i + 1;
+        }
+    }
+
+    if (pressed == -1) {
+        if (!marioIsAnimating) {
+            set_mario_animation(gMarioState, mario_anim_table[0]);
+        }
+    } else {
+        set_mario_animation(gMarioState, mario_anim_table[pressed]);
+        marioIsAnimating = 1;
+    }
+
+    if (marioIsAnimating) {
+        if (is_anim_past_end(gMarioState)) {
+            marioIsAnimating = 0;
         }
     }
 }
 
 
-void funkin_handle_switchcase(void) {
-    struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
-    if (bf) {
-        if (funkin_focus_char) {
-            bf->oAnimState = 3;
-        } else {
-            bf->oAnimState = 0;
+#include "sounds.h"
+
+u32 funkin_sounds[] = {
+    SOUND_MARIO_MAMA_MIA, // 3
+    SOUND_PEACH_FOR_MARIO, // 2
+    SOUND_PEACH_DEAR_MARIO, // 1
+    SOUND_MENU_THANK_YOU_PLAYING_MY_GAME, // go!
+    SOUND_ACTION_TERRAIN_STEP, // quiet enough sound to do stuff
+};
+u8 funkin_soundlatches[] = {0,0,0,0,0};
+
+
+void funkin_handle_countdown(f32 timer) {
+    for (int i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].who_sings < 2) break;
+        if (funkin_notes[i].timer_offset > timer) break;
+        if (funkin_notes[i].who_sings < 8) {
+            if (funkin_soundlatches[funkin_notes[i].who_sings - 2] == 0) {
+                play_sound(funkin_sounds[funkin_notes[i].who_sings - 2], gGlobalSoundSource);
+                funkin_soundlatches[funkin_notes[i].who_sings - 2] = 1;
+                funkin_countdown++;
+                break;
+            }
         }
     }
+}
+
+
+void funkin_debug(f32 startTime) {
+    // char debug_str[0x100];
+    // int i;
+
+    // for (i = 1; i < funkin_notecount; i++) {
+    //     if (funkin_notes[i].timer_offset > startTime) break;
+    // }
+    // struct funkin_note f;
+
+    // f = funkin_notes[i - 1];
+    // sprintf(debug_str, "%s %.2f %d %d %.2f %.2f %d",
+    //     f.who_sings == FUNKIN_BF ? "bf" : "ma",
+    //     f.timer_offset,
+    //     f.track,
+    //     f.length,
+    //     f.timeHit,
+    //     f.timeReleased,
+    //     gMarioObject ? gMarioObject->header.gfx.animInfo.animID : -1
+    // );
+    // s2d_print_alloc(30, 30, debug_str);
+
+    // f = funkin_notes[i];
+    // sprintf(debug_str, "%s %.2f %d %d %.2f %.2f %d",
+    //     f.who_sings == FUNKIN_BF ? "bf" : "ma",
+    //     f.timer_offset,
+    //     f.track,
+    //     f.length,
+    //     f.timeHit,
+    //     f.timeReleased,
+    //     gMarioObject ? gMarioObject->header.gfx.animInfo.animID : -1
+    // );
+    // s2d_print_alloc(30, 46, debug_str);
+
+    // f = funkin_notes[i + 1];
+    // sprintf(debug_str, "%s %.2f %d %d %.2f %.2f %d",
+    //     f.who_sings == FUNKIN_BF ? "bf" : "ma",
+    //     f.timer_offset,
+    //     f.track,
+    //     f.length,
+    //     f.timeHit,
+    //     f.timeReleased,
+    //     gMarioObject ? gMarioObject->header.gfx.animInfo.animID : -1
+    // );
+    // s2d_print_alloc(30, 62, debug_str);
+}
+
+int score_latch = 0;
+int combo_latch = 0;
+int initialscore = 0;
+int initialcombo = 0;
+
+
+/**
+ * FUNKIN TODO LIST
+ * - Modding guide
+ * - playtesters
+ **/
+
+funkin_text_scale = 25;
+funkin_scoretext_x = 10;
+funkin_scoretext_y = 200;
+funkin_scoretext_x2 = 10;
+funkin_scoretext_y2 = 216;
+
+funkin_stopscroll = 0;
+
+#include "audio/external.h"
+
+f32 approach_f32_asymptotic(f32 current, f32 target, f32 multiplier);
+s32 approach_s16_asymptotic(s16 current, s16 target, s16 divisor);
+
+#define WIN_CONDITION funkin_timer > funkin_notes[funkin_notecount - 1].timer_offset + 500.0f
+// #define WIN_CONDITION gPlayer1Controller->buttonDown & L_TRIG
+
+lose_latch = 0;
+void funkin_eval_win_condition(void) {
+    if (WIN_CONDITION) {
+        play_music(SEQ_PLAYER_ENV, 0, 0);
+        stop_background_music(SEQUENCE_ARGS(4, SEQ_STREAMED_BACKGROUND));
+        stop_background_music(SEQUENCE_ARGS(4, SEQ_STREAMED_VOICES));
+        funkin_stopscroll = 1;
+
+#ifdef SIIVAGUNNER
+        gSPDisplayList(gDisplayListHead++, lose_bg_dl);
+        if (lose_latch == 0) {
+            lose_latch = 1;
+            play_sound(SOUND_PEACH_POWER_OF_THE_STARS, gGlobalSoundSource);
+        }
+#else
+        funkin_text_scale = approach_s16_asymptotic(funkin_text_scale, 80, 3);
+        funkin_scoretext_x = approach_s16_asymptotic(funkin_scoretext_x, 100, 3);
+        funkin_scoretext_y = approach_s16_asymptotic(funkin_scoretext_y, 120, 3);
+        funkin_scoretext_x2 = approach_s16_asymptotic(funkin_scoretext_x2, 100, 3);
+        funkin_scoretext_y2 = approach_s16_asymptotic(funkin_scoretext_y2, 180, 3);
+        s2d_print_alloc(90, 35, ALIGN_LEFT, DROPSHADOW "2 2" "You Win!");
+#endif
+    }
+    if (funkin_health <= 0) {
+        gSPDisplayList(gDisplayListHead++, lose_bg_dl);
+        if (lose_latch == 0) {
+            lose_latch = 1;
+            play_sound(SOUND_PEACH_POWER_OF_THE_STARS, gGlobalSoundSource);
+        }
+        play_music(SEQ_PLAYER_ENV, 0, 0);
+        stop_background_music(SEQUENCE_ARGS(4, SEQ_STREAMED_BACKGROUND));
+        stop_background_music(SEQUENCE_ARGS(4, SEQ_STREAMED_VOICES));
+        funkin_stopscroll = 1;
+    }
+}
+
+
+void fillrect(int ulx, int uly, int lrx, int lry) {
+    #define gp gDisplayListHead
+
+    gDPPipeSync(gp++);
+    gDPSetRenderMode(gp++, G_RM_NOOP, G_RM_NOOP2);
+    gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
+    gDPSetFillColor(gp++, 0xFF5D<<16  | 0xFF5D);
+    gDPFillRectangle(gp++, ulx, uly, lrx, lry);
+    gDPPipeSync(gDisplayListHead++);
+    gDPSetCycleType(gDisplayListHead++,G_CYC_1CYCLE);
+    gSPDisplayList(gp++, ready_init_dl);
+
 }
 
 void funkin_game_loop(void) {
+
+    gMarioState->faceAngle[1] = 0x3800;
 
     funkin_hud();
 
@@ -303,14 +727,41 @@ void funkin_game_loop(void) {
 
     funkin_update_buttons_held();
 
-    funkin_handle_ready_notes(funkin_timer);
+    funkin_handle_camera(funkin_timer);
+    funkin_record_note_hit_timings(funkin_timer);
+    // funkin_record_note_release_timings(funkin_timer);
 
-    funkin_handle_switchcase();
+    score = 0;
+    // combo = 0;
+    funkin_calculate_score(funkin_timer);
+    // funkin_calculate_combo(funkin_timer);
 
-    funkin_timer += BPM_TO_FPS(funkin_bpm);
-    // funkin_timer+=100;
-    if (funkin_timer > 2350.0f) {
-        funkin_hit_timer += BPM_TO_FPS(funkin_bpm);
+    if (score_latch == 0) {
+        score_latch = 1;
+        initialscore = -score;
+    }
+    // if (combo_latch == 0) {
+    //     combo_latch = 1;
+    //     initialcombo = -combo;
+    // }
+
+    // funkin_debug(funkin_timer);
+
+    score += initialscore;
+    // combo += initialcombo;
+
+    funkin_choose_bf_model();
+    funkin_set_mario_anim(funkin_timer);
+
+    if (funkin_stopscroll == 0) {
+        funkin_timer += (BPM_TO_FPS(funkin_bpm));
+    
+        funkin_hit_timer += (BPM_TO_FPS(funkin_bpm));
+    }
+
+    funkin_handle_countdown(funkin_timer);
+
+    if (funkin_countdown == 5) {
         if (started_music_latch == 0) {
             started_music_latch = 1;
 
@@ -319,12 +770,30 @@ void funkin_game_loop(void) {
         }
     }
 
-    char t[0x40];
-    sprintf(t, "SCORE: %d\vCOMBO: %d", score, combo);
+    char score_display[0x60];
+    char combo_display[0x60];
+    sprintf(score_display, DROPSHADOW "2 2" SCALE "%d" "Score: %d",funkin_text_scale, score);
+    sprintf(combo_display, DROPSHADOW "2 2" SCALE "%d" "Combo: %d",funkin_text_scale, combo);
 
-    char t2[0x40];
-    sprintf(t2, "A%.2f %.2f %.2f %.2f", held_lens[0], held_lens[1], held_lens[2], held_lens[3]);
-    s2d_print_alloc(50, 150, t);
-    s2d_print_alloc(50, 180, t2);
+    // char debug_held_lens[0x40];
+    // sprintf(debug_held_lens, SCALE "25" "A %f %d %d", funkin_timer, funkin_countdown, funkin_health);
+    // sprintf(debug_held_lens, "A%.2f %.2f %.2f %.2f", held_lens[0], held_lens[1], held_lens[2], held_lens[3]);
+    // s2d_print_alloc(50, 180,ALIGN_LEFT, debug_held_lens);
+
+    funkin_eval_win_condition();
+
+
+    if (funkin_health > 0) {
+        fillrect(70, 202, 300, 208);
+        gSPDisplayList(gDisplayListHead++, maro_sprite_dl);
+        gSPDisplayList(gDisplayListHead++, iconbf_sprite_dl);
+        s2d_print_alloc(funkin_scoretext_x, funkin_scoretext_y,ALIGN_LEFT, score_display);
+        s2d_print_alloc(funkin_scoretext_x2, funkin_scoretext_y2,ALIGN_LEFT, combo_display);
+    }
+
+    funkin_draw_countdown();
+
 }
+
+
 

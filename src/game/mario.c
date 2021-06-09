@@ -62,6 +62,7 @@ s32 is_anim_past_end(struct MarioState *m) {
 /**
  * Sets Mario's animation without any acceleration, running at its default rate.
  */
+extern u32 marioIsAnimating;
 s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
     struct Object *o = m->marioObj;
     struct Animation *targetAnim = m->animation->targetAnim;
@@ -1231,21 +1232,21 @@ void squish_mario_model(struct MarioState *m) {
  * Debug function that prints floor normal, velocity, and action information.
  */
 void debug_print_speed_action_normal(struct MarioState *m) {
-    f32 steepness;
-    f32 floor_nY;
+    // f32 steepness;
+    // f32 floor_nY;
 
-    if (gShowDebugText) {
-        steepness = sqrtf(
-            ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
-        floor_nY = m->floor->normal.y;
+    // if (gShowDebugText) {
+    //     steepness = sqrtf(
+    //         ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
+    //     floor_nY = m->floor->normal.y;
 
-        print_text_fmt_int(210, 88, "ANG %d", (atan2s(floor_nY, steepness) * 180.0f) / 32768.0f);
+    //     print_text_fmt_int(210, 88, "ANG %d", (atan2s(floor_nY, steepness) * 180.0f) / 32768.0f);
 
-        print_text_fmt_int(210, 72, "SPD %d", m->forwardVel);
+    //     print_text_fmt_int(210, 72, "SPD %d", m->forwardVel);
 
-        // STA short for "status," the official action name via SMS map.
-        print_text_fmt_int(210, 56, "STA %x", (m->action & ACT_ID_MASK));
-    }
+    //     // STA short for "status," the official action name via SMS map.
+    //     print_text_fmt_int(210, 56, "STA %x", (m->action & ACT_ID_MASK));
+    // }
 }
 
 /**
@@ -1292,24 +1293,24 @@ void update_mario_button_inputs(struct MarioState *m) {
  * Updates the joystick intended magnitude.
  */
 void update_mario_joystick_inputs(struct MarioState *m) {
-    struct Controller *controller = m->controller;
-    f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
+    // struct Controller *controller = m->controller;
+    // f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
 
-    if (m->squishTimer == 0) {
-        m->intendedMag = mag / 2.0f;
-    } else {
-        m->intendedMag = mag / 8.0f;
-    }
+    // if (m->squishTimer == 0) {
+    //     m->intendedMag = mag / 2.0f;
+    // } else {
+    //     m->intendedMag = mag / 8.0f;
+    // }
 
-    if (m->intendedMag > 0.0f) {
-        if (gLakituState.mode != CAM_MODE_NEWCAM)
-            m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
-        else
-            m->intendedYaw = atan2s(-controller->stickY, controller->stickX)-newcam_yaw+0x4000;
-        m->input |= INPUT_NONZERO_ANALOG;
-    } else {
-        m->intendedYaw = m->faceAngle[1];
-    }
+    // if (m->intendedMag > 0.0f) {
+    //     if (gLakituState.mode != CAM_MODE_NEWCAM)
+    //         m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
+    //     else
+    //         m->intendedYaw = atan2s(-controller->stickY, controller->stickX)-newcam_yaw+0x4000;
+    //     m->input |= INPUT_NONZERO_ANALOG;
+    // } else {
+    //     m->intendedYaw = m->faceAngle[1];
+    // }
 }
 
 /**

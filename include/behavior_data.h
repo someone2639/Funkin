@@ -543,5 +543,6 @@ extern const BehaviorScript bhvEndBirds2[];
 extern const BehaviorScript bhvIntroScene[];
 extern const BehaviorScript bhvFunkin[];
 extern const BehaviorScript bhvUnusedFakeStar[];
+extern const BehaviorScript bhvBoomBox[];
 
 #endif // BEHAVIOR_DATA_H

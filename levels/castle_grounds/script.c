@@ -42,9 +42,12 @@ const LevelScript level_castle_grounds_entry[] = {
 	LOAD_MODEL_FROM_GEO(MODEL_CASTLE_GROUNDS_FLAG, castle_grounds_geo_000660), 
 	LOAD_MODEL_FROM_GEO(MODEL_CASTLE_GROUNDS_CANNON_GRILL, castle_grounds_geo_000724), 
 	LOAD_MODEL_FROM_GEO(0xF1, bf_geo), 
+	LOAD_MODEL_FROM_GEO(0xF5, boombox_geo), 
 
 	AREA(1, castle_grounds_area_1),
 		OBJECT(0xF1, -1588, -1874, 487, 0, -90, 0, 0x00000000, bhvFunkin),
+		OBJECT(0xF5, -1901, -1726, -2, 0, 0, 0, 0x00000000, bhvBoomBox),
+		OBJECT(MODEL_TOAD, -1901, -1536, -2, 0, 0, 0, 0x00000000, bhvToadMessage),
 		OBJECT(MODEL_NONE, -2178, -1677, 487, 0, 0, 0, 0x000A0000, bhvSpinAirborneWarp),
 		MARIO_POS(0x01, 0, -2178, -1877, 487),
 		TERRAIN(castle_grounds_area_1_collision),

@@ -18,3 +18,4 @@
 #include "mario/geo.inc.c"
 
 #include "bf/geo.inc.c"
+#include "boombox/geo.inc.c"

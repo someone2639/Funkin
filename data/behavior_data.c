@@ -6114,3 +6114,16 @@ const BehaviorScript bhvFunkin[] = {
     END_LOOP(),
 };
 
+extern void register_obj_rhythm(void);
+extern void boombox_loop(void);
+
+const BehaviorScript bhvBoomBox[] = {
+    BEGIN(OBJ_LIST_DEFAULT),
+    CALL_NATIVE(register_obj_rhythm),
+
+    BEGIN_LOOP(),
+        CALL_NATIVE(boombox_loop),
+    END_LOOP(),
+
+};
+

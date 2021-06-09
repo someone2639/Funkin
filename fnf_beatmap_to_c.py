@@ -4,9 +4,6 @@ import sys
 
 beatmap = None
 
-# Needed so the beatmap doesnt start the instant the game does
-# tune this value if it's not quite what you want
-OFFSET_LENGTH = 2500.0
 
 try:
 	fname = sys.argv[1]
@@ -32,41 +29,36 @@ writeline("int funkin_bpm = %d;" % bpm)
 
 c = 0
 writeline("struct funkin_note funkin_notes[] = {")
+
+bpm2fps = lambda x : ((60.0 / x) * 100.0) 
+
+# fiddle with these if the beat doesnt sync up to the music
+MULTIPLIER = 10
+OFFSET = 200
+BEAT_START = (bpm2fps(bpm) * (MULTIPLIER * 4)) + (OFFSET * 2)
+
+writeline("\t// special notes that handle the countdown")
+writeline("\t{2, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 0))))
+writeline("\t{3, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 1))))
+writeline("\t{4, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 2))))
+writeline("\t{5, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 3))))
+writeline("\t{6, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 4))))
+writeline("");
+writeline("\t// the actual beatmap")
+
+
 for i in beatmap['song']['notes'][:-1]:
 	for j in i['sectionNotes']:
-		j[0] += OFFSET_LENGTH
 		j[1] %= 4
-		j.append(0)
-		c+=1
-		writeline("\t{%d, %f, %d, %d, %f}," % (
+		c += 1
+		writeline("\t{%d, %f, %d, %d, %f, %f}," % (
 			1 if i['mustHitSection'] else 0,
-			j[0],
+			(j[0] + BEAT_START),
 			j[1] + 4 if i['mustHitSection'] else j[1],
 			j[2],
-			j[3]
+			0, 0
 			))
 writeline("};")
-writeline("int funkin_notecount = %d;" % c)
-
-# writeline("")
-
-# c = 0
-# writeline("struct funkin_note funkin_notes_cpu[] = {")
-# for i in beatmap['song']['notes'][:-1]:
-# 	if not i['mustHitSection']:
-# 		for j in i['sectionNotes']:
-# 			j[0] += OFFSET_LENGTH
-# 			j[1] %= 4
-# 			j.append(0)
-# 			c += 1
-# 			writeline("\t{%f, %d, %d, %f}," % tuple(j))
-# writeline("};")
-# writeline("int funkin_player_notecount = %d;" % c)
-
+writeline("int funkin_notecount = %d;" % (c + 5))
 
 globalFile.close()
-
-# for i in beatmap['notes'][:-1]:
-# 	print(i)
-
-# print(beatmap)

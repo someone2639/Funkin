@@ -57,7 +57,8 @@ struct funkin_note {
 	f32 timer_offset;
 	u32 track;
 	u32 length;
-	f32 timeHit; // is timeReleased if length != 0
+	f32 timeHit;
+	f32 timeReleased;
 };
 extern int funkin_notecount;
 

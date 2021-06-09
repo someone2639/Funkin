@@ -26,9 +26,21 @@
 
 #include "sparkle_animation/model.inc.c"
 
-#include "src/s2d_engine/fonts/impact.c"
+#include "src/s2d_engine/config.h"
+#include FONT_C_FILE
 
 #include "src/funkin/spritefiles/notes.c"
 #include "src/funkin/spritefiles/longnotes.c"
 
 #include "bf/model.inc.c"
+
+#include "src/funkin/spritefiles/ready.c"
+#include "src/funkin/spritefiles/set.c"
+#include "src/funkin/spritefiles/go.c"
+
+#include "src/funkin/spritefiles/lose.c"
+
+#include "src/funkin/spritefiles/maro.c"
+#include "src/funkin/spritefiles/iconbf.c"
+
+#include "boombox/model.inc.c"
