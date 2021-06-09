@@ -646,7 +646,7 @@ int initialcombo = 0;
 
 /**
  * FUNKIN TODO LIST
- * - Modding guide
+ * - credit someone2639 upon winning
  * - playtesters
  **/
 
