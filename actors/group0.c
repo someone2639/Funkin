@@ -43,4 +43,8 @@
 #include "src/funkin/spritefiles/maro.c"
 #include "src/funkin/spritefiles/iconbf.c"
 
+#include "src/funkin/spritefiles/sick.c"
+#include "src/funkin/spritefiles/good.c"
+#include "src/funkin/spritefiles/bad.c"
+
 #include "boombox/model.inc.c"

@@ -307,6 +307,10 @@ static void geo_process_switch(struct GraphNodeSwitchCase *node) {
 /**
  * Process a camera node.
  */
+
+#include "level_update.h"
+#include "behavior_data.h"
+extern s16 toadX, toadY;
 static void geo_process_camera(struct GraphNodeCamera *node) {
     Mat4 cameraTransform;
     Mtx *rollMtx = alloc_display_list(sizeof(*rollMtx));
@@ -330,6 +334,20 @@ static void geo_process_camera(struct GraphNodeCamera *node) {
         geo_process_node_and_siblings(node->fnNode.node.children);
         gCurGraphNodeCamera = NULL;
     }
+
+    struct Object *t = cur_obj_nearest_object_with_behavior(bhvToadMessage);
+
+    #define Y_OFFS 00
+    if (t) {
+        Vec3s thwompPos3s;
+        vec3f_to_vec3s(thwompPos3s, &t->oPosX);
+        mtxf_mul_vec3s(gMatStack[gMatStackIndex], thwompPos3s);
+
+        toadX = (s16)(2 * (0.5f - thwompPos3s[0] / (f32)thwompPos3s[2]) * (gCurGraphNodeRoot->width));
+        toadY = 240 - (s16)(2 * (0.5f - thwompPos3s[1] / (f32)thwompPos3s[2]) * (gCurGraphNodeRoot->height));
+        toadY -= Y_OFFS;
+    }
+
     gMatStackIndex--;
 }
 
