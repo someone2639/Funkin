@@ -9,6 +9,8 @@
 #include "game/game_init.h"
 #include "game/object_list_processor.h"
 
+#define LEEWAY -50.0f
+
 f32 approach_f32_asymptotic(f32 current, f32 target, f32 multiplier);
 s32 approach_s16_asymptotic(s16 current, s16 target, s16 divisor);
 
@@ -185,7 +187,7 @@ void funkin_track_scales(f32 timer) {
     for (int i = 0; i < funkin_notecount; i++) {
         if (funkin_notes[i].timer_offset > timer) break;
 
-        f32 dt = ABSF(funkin_notes[i].timeHit - timer);
+        f32 dt = ABSF(funkin_notes[i].timeHit - timer - LEEWAY);
         if (dt < 120.0f && timer > 500.0f) {
             trackHitScales[funkin_notes[i].track].scale =
             approach_f32_asymptotic(
@@ -466,7 +468,6 @@ static int funkin_score_dt(f32 dt) {
 
 // calculates the entire score every frame
 // this is the only way i could do this
-#define LEEWAY -50.0f
 void funkin_calculate_score(f32 startTime) {
     funkin_health = HEALTH_START;
 
@@ -769,7 +770,7 @@ void funkin_note_hit_feedback(f32 timer) {
             SET_BG_XY(&sick_bg, toadX, toadY);
             SET_BG_SCALE(&sick_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, sick_bg_dl);
-        } else if (dt < 80.0f) {
+        } else if (dt < 82.0f) {
             SET_BG_XY(&good_bg, toadX, toadY);
             SET_BG_SCALE(&good_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, good_bg_dl);
@@ -793,7 +794,6 @@ int initialcombo = 0;
 /**
  * FUNKIN TODO LIST
  * - playtesters
- * - credit someone2639 upon winning
  **/
 
 funkin_text_scale = 25;
@@ -832,6 +832,7 @@ void funkin_eval_win_condition(void) {
         funkin_scoretext_x2 = approach_s16_asymptotic(funkin_scoretext_x2, 100, 3);
         funkin_scoretext_y2 = approach_s16_asymptotic(funkin_scoretext_y2, 180, 3);
         s2d_print_alloc(90, 35, ALIGN_LEFT, DROPSHADOW "2 2" "You Win!");
+        s2d_print_alloc(100, 220, ALIGN_LEFT, SCALE "25" DROPSHADOW "2 2" "Hack by someone2639");
 #endif
     }
     if (funkin_health <= 0) {
