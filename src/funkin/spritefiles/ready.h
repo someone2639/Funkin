@@ -1,6 +1,6 @@
 #include <PR/ultratypes.h>
 #include <PR/gs2dex.h>
-extern Gfx ready_init_dl[];
+extern Gfx s2d_init_dl[];
 extern uObjTxtr ready_tex;
 extern uObjBg ready_bg;
 extern Gfx ready_bg_dl[];

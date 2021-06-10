@@ -3,7 +3,7 @@
 
 // Change how many notes can be on screen;
 // a higher number will take up more RAM
-#define MAX_SPRITE_COUNT 200
+#define MAX_SPRITE_COUNT 300
 
 #define GRN 0
 #define RED 1

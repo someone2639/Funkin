@@ -103,10 +103,21 @@ void assign_tlut(int index, u32 color) {
 
 void call_note_sprite_dl(int idx, int color, int x, int y, uObjMtx *buffer, int buf_idx, f32 scale) {
     gDPPipeSync(gDisplayListHead++);
+    gDPSetTexturePersp(gDisplayListHead++, G_TP_NONE);
+    gDPSetTextureLOD(gDisplayListHead++, G_TL_TILE);
+    gDPSetTextureConvert(gDisplayListHead++, G_TC_FILT);
+    gDPSetAlphaCompare(gDisplayListHead++, G_AC_THRESHOLD);
+    gDPSetBlendColor(gDisplayListHead++, 0, 0, 0, 0x01);
+    gDPSetCombineLERP(gDisplayListHead++,
+        0,0,0,TEXEL0,
+        0,0,0,TEXEL0,
+        0,0,0,TEXEL0,
+        0,0,0,TEXEL0
+        );
     gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
     gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2);
     gDPSetTextureLUT(gDisplayListHead++, G_TT_RGBA16);
-    gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU | G_OBJRM_BILERP);
+    gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU);
     gSPObjLoadTxtr(gDisplayListHead++, &note_tex[idx]);
 
     assign_tlut(buf_idx, color_array[color]);
@@ -442,7 +453,7 @@ static int funkin_score_dt(f32 dt) {
 
     if (toReturn > 0) {
         combo++;
-        funkin_health += 5;
+        funkin_health += 10;
     } else {
         combo = 0;
         funkin_health -= 15;
@@ -554,7 +565,6 @@ int funkin_countdown = 0;
 
 void funkin_draw_countdown(void) {
     if (countdownPtrs[funkin_countdown] != NULL) {
-        gSPDisplayList(gDisplayListHead++, ready_init_dl);
         gSPDisplayList(gDisplayListHead++, countdownPtrs[funkin_countdown]);
     }
 }
@@ -736,12 +746,14 @@ void funkin_debug(f32 startTime) {
 
 #define SET_BG_XY(bg, x, y) {\
     uObjBg *f = segmented_to_virtual(bg);\
-    f->s.frameX = x<<5; f->s.frameY = y<<5;\
+    f->s.frameX = x<<2; f->s.frameY = y<<2;\
 }
+
+// #define SET_BG_XY(bg, x, y) 
 
 #define SET_BG_SCALE(bg, sc) {\
     uObjBg *f = segmented_to_virtual(bg);\
-    f->s.scaleW = (sc) * (1 << 10); f->s.scaleH = (sc) * (1 << 10);\
+    f->s.scaleW = (1.0f/sc) * (1 << 10); f->s.scaleH = (1.0f/sc) * (1 << 10);\
 }
 
 s16 toadX, toadY;
@@ -752,23 +764,23 @@ void funkin_note_hit_feedback(f32 timer) {
         if (funkin_notes[i].timer_offset < timer - 300.0f) continue;
         if (funkin_notes[i].timer_offset > timer) break;
         f32 dt = ABSF(funkin_notes[i].timeHit - funkin_notes[i].timer_offset);
-        // f32 dt2 = ABSF(funkin_notes[i].timer_offset - timer);
-        // if (dt2 < 200.0f) {
-            if (dt < 40.0f) {
-                SET_BG_XY(&sick_bg, toadX, toadY);
-                SET_BG_SCALE(&sick_bg, 0.75f);
-                gSPDisplayList(gDisplayListHead++, sick_bg_dl);
-            } else if (dt < 80.0f) {
-                SET_BG_XY(&good_bg, toadX, toadY);
-                SET_BG_SCALE(&good_bg, 0.75f);
-                gSPDisplayList(gDisplayListHead++, good_bg_dl);
-            } else if (dt < 120.0f) {
-                SET_BG_XY(&bad_bg, toadX, toadY);
-                SET_BG_SCALE(&bad_bg, 0.75f);
-                gSPDisplayList(gDisplayListHead++, bad_bg_dl);
-            }
-        // }
+        if (dt < 50.0f) {
+            SET_BG_XY(&sick_bg, toadX, toadY);
+            SET_BG_SCALE(&sick_bg, 0.75f);
+            gSPDisplayList(gDisplayListHead++, sick_bg_dl);
+        } else if (dt < 100.0f) {
+            SET_BG_XY(&good_bg, toadX, toadY);
+            SET_BG_SCALE(&good_bg, 0.75f);
+            gSPDisplayList(gDisplayListHead++, good_bg_dl);
+        } else {
+            SET_BG_XY(&bad_bg, toadX, toadY);
+            SET_BG_SCALE(&bad_bg, 0.75f);
+            gSPDisplayList(gDisplayListHead++, bad_bg_dl);
+        }
     }
+    // char t[0x40];
+    // sprintf(t, SCALE "25""X %d Y %d", toadX, toadY);
+    // s2d_print_alloc(50,50, ALIGN_LEFT, t);
 }
 
 int score_latch = 0;
@@ -845,7 +857,6 @@ void fillrect(int ulx, int uly, int lrx, int lry) {
     gDPFillRectangle(gp++, ulx, uly, lrx, lry);
     gDPPipeSync(gDisplayListHead++);
     gDPSetCycleType(gDisplayListHead++,G_CYC_1CYCLE);
-    gSPDisplayList(gp++, ready_init_dl);
 
 }
 

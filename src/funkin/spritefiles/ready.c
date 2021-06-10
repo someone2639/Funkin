@@ -33,6 +33,7 @@ uObjBg ready_bg = {
 
 Gfx ready_bg_dl[] = {
 	gsDPPipeSync(),
+	gsSPDisplayList(ready_init_dl),
 	gsDPSetCycleType(G_CYC_1CYCLE),
 	gsDPSetRenderMode(G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2),
 	gsSPObjRenderMode(G_OBJRM_XLU | G_OBJRM_BILERP),
