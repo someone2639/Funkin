@@ -444,6 +444,7 @@ static int funkin_score_dt(f32 dt) {
 
     if      (dt > 150.0f) toReturn = -10;
     else if (dt > 100.0f) toReturn =  -5;
+    else if (dt >  90.0f) toReturn =   0;
     else if (dt >  80.0f) toReturn =   1;
     else if (dt >  50.0f) toReturn =   5;
     else if (dt >  40.0f) toReturn =  10;
@@ -763,12 +764,12 @@ void funkin_note_hit_feedback(f32 timer) {
         if (funkin_notes[i].who_sings != FUNKIN_BF) continue;
         if (funkin_notes[i].timer_offset < timer - 300.0f) continue;
         if (funkin_notes[i].timer_offset > timer) break;
-        f32 dt = ABSF(funkin_notes[i].timeHit - funkin_notes[i].timer_offset);
-        if (dt < 50.0f) {
+        f32 dt = ABSF(funkin_notes[i].timeHit - funkin_notes[i].timer_offset - LEEWAY);
+        if (dt < 40.0f) {
             SET_BG_XY(&sick_bg, toadX, toadY);
             SET_BG_SCALE(&sick_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, sick_bg_dl);
-        } else if (dt < 100.0f) {
+        } else if (dt < 80.0f) {
             SET_BG_XY(&good_bg, toadX, toadY);
             SET_BG_SCALE(&good_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, good_bg_dl);

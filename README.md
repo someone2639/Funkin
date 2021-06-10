@@ -15,5 +15,5 @@ It's exactly what it says on the tin. Go to [this link](https://github.com/Crash
 
 ## Custom Battle Stage (Requires SM64 knowledge)
 
- - The stage model is located in `modding/stage.blend`. Edit the stage as you want, then export over Castle Grounds using the SM64 Level Exporter. Nothing in the level is _required_ for the game to work, but keep the BF object and Mario in the level at the very least so that the player gets some visual feedback.
+ - The stage model is located in `modding/stage.blend`. Edit the stage as you want, then export over Castle Grounds using the SM64 Level Exporter. Nothing in the level is _required_ for the game to work, but keep the BF object and Mario in the level at the very least so that the player gets some visual feedback. Additionally, if you want note feedback, keep a Message Toad object in view.
  - You might want to adjust the camera. The code for that is in `enhancements/puppycam_scripts.inc.c` under `newcam_funkin_cam`
