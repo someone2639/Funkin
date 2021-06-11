@@ -150,15 +150,15 @@ struct TrackHit trackHitScales[] = {
 };
 
 int track_array[] = {
+    TRACK1,
+    TRACK2,
     TRACK3,
     TRACK4,
-    TRACK2,
-    TRACK1,
 
+    TRACK5,
+    TRACK6,
     TRACK7,
     TRACK8,
-    TRACK6,
-    TRACK5,
 };
 
 
@@ -207,19 +207,20 @@ void funkin_track_scales(f32 timer) {
 }
 
 int track_array2[] = {
-    TRACK4,
-    TRACK3,
     TRACK1,
     TRACK2,
+    TRACK3,
+    TRACK4,
 
-    TRACK8,
-    TRACK7,
     TRACK5,
     TRACK6,
+    TRACK7,
+    TRACK8,
 };
 
 void funkin_draw_note(int x, int y, int color, int direction) {
     if (color == TEMPL) {
+
         call_note_sprite_dl(direction, color, x, y, noteBuffer, noteIndex++, 
             trackHitScales[find_track_scale(track_array2[find_track_scale(x)])].scale
             // 0.6f
@@ -283,6 +284,13 @@ void funkin_reset_timers(void) {
                             p[i].timer_offset - startTime\
                             ) / 4))
 
+int directionArray[] = {
+    LEFT,
+    DOWN,
+    UP,
+    RIGHT,
+};
+
 // i sure hope you didnt intend to edit this part of the code :)
 // i sure hope i dont either :)
 // update: i had to edit this part of the code :)
@@ -306,7 +314,7 @@ void funkin_gen_longnote(int track, int y, int len, int idx) {
     funkin_draw_note(track_array[funkin_notes[idx].track],
                          y,
                          funkin_notes[idx].track % 4,
-                         funkin_notes[idx].track % 4
+                         directionArray[funkin_notes[idx].track % 4]
                          );
 }
 
@@ -320,6 +328,7 @@ void funkin_gen_longnote(int track, int y, int len, int idx) {
 // #define COND_DRAW 1
 
 
+
 void funkin_draw_beatmap_from_offset(f32 startTime) {
     for (int i = 0; i < funkin_notecount; i++) {
         if (funkin_notes[i].timer_offset < (startTime - TIMER_SWAY)) continue;
@@ -330,7 +339,7 @@ void funkin_draw_beatmap_from_offset(f32 startTime) {
                 funkin_draw_note(track_array[funkin_notes[i].track],
                              DIST_FROM_TOP(funkin_notes, i),
                              funkin_notes[i].track % 4,
-                             funkin_notes[i].track % 4
+                             directionArray[funkin_notes[i].track % 4]
                              );
             } else {
                 funkin_gen_longnote(
@@ -351,17 +360,17 @@ int combo = 0;
 u8 isScored[MAX_SPRITE_COUNT];
 
 u16 buttonArray[4] = {
+    L_CBUTTONS,
+    D_CBUTTONS,
     U_CBUTTONS,
     R_CBUTTONS,
-    D_CBUTTONS,
-    L_CBUTTONS,
 };
 
 u16 buttonArray2[4] = {
+    L_JPAD,
+    D_JPAD,
     U_JPAD,
     R_JPAD,
-    D_JPAD,
-    L_JPAD,
 };
 
 u16 buttonArraySwitchCaseLUT[] = {
