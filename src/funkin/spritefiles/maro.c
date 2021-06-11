@@ -23,6 +23,18 @@ uObjTxtrTLUT_t maro_pal_TLUT = {
 	(u32) &maro_pal_tex_0, /* flag */
 	0xFFFFFFFF, /* mask */
 };
+Gfx maro_init_dl[] = {
+	gsDPPipeSync(),
+	gsDPSetTexturePersp(G_TP_NONE),
+	gsDPSetTextureLOD(G_TL_TILE),
+	gsDPSetTextureLUT(G_TT_NONE),
+	gsDPSetTextureConvert(G_TC_FILT),
+	gsDPSetAlphaCompare(G_AC_THRESHOLD),
+	gsDPSetBlendColor(0, 0, 0, 0x01),
+	gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
+	gsSPEndDisplayList(),
+};
+
 uObjMtx maro_mtx = {
 	0x10000,  0,              /* A,B */
 	0,        0x10000,        /* C,D */
@@ -41,7 +53,7 @@ uObjSprite maro_obj = {
 };
 Gfx maro_sprite_dl[] = {
 	gsDPPipeSync(),
-
+	gsSPDisplayList(maro_init_dl),
 	gsDPSetCycleType(G_CYC_1CYCLE),
 	gsDPSetRenderMode(G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2),
 	gsDPSetTextureLUT(G_TT_RGBA16),	gsSPObjRenderMode(G_OBJRM_XLU | G_OBJRM_BILERP),

@@ -1,5 +1,6 @@
 #include <PR/ultratypes.h>
 #include <PR/gs2dex.h>
+extern Gfx s2d_init_dl[];
 extern uObjTxtr maro_tex;
 extern uObjMtx maro_mtx;
 extern uObjSprite maro_obj;

@@ -10,6 +10,7 @@
 #include "game/object_list_processor.h"
 
 #define LEEWAY -50.0f
+#define GOOD_NOTE_DT 82.0f
 
 f32 approach_f32_asymptotic(f32 current, f32 target, f32 multiplier);
 s32 approach_s16_asymptotic(s16 current, s16 target, s16 divisor);
@@ -478,6 +479,7 @@ static int funkin_score_dt(f32 dt) {
 // calculates the entire score every frame
 // this is the only way i could do this
 void funkin_calculate_score(f32 startTime) {
+    combo = 0;
     funkin_health = HEALTH_START;
 
     for (int i = 0; i < funkin_notecount; i++) {
@@ -511,13 +513,15 @@ void funkin_calculate_score(f32 startTime) {
 #define COMBO_SWAY 110.0f
 
 void funkin_calculate_combo(f32 startTime) {
+    combo = 0;
     for (int i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset < (startTime - TIMER_SWAY)) continue;
         if (funkin_notes[i].timer_offset > startTime) break;
 
         if (funkin_notes[i].who_sings == FUNKIN_BF) {
             f32 dt = ABSF(funkin_notes[i].timeHit - funkin_notes[i].timer_offset - LEEWAY);
             if (funkin_notes[i].length == 0) {
-                if (dt <= 100.0f) combo++;
+                if (dt <= GOOD_NOTE_DT) combo++;
                 else combo = 0;
             } else {
                 // f32 dlength = ABSF(
@@ -526,7 +530,7 @@ void funkin_calculate_combo(f32 startTime) {
                 //     - LEEWAY
                 //     );
 
-                if (dt <= 100.0f) combo++;
+                if (dt <= GOOD_NOTE_DT) combo++;
                 else combo = 0;
             }
         }
@@ -779,7 +783,7 @@ void funkin_note_hit_feedback(f32 timer) {
             SET_BG_XY(&sick_bg, toadX, toadY);
             SET_BG_SCALE(&sick_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, sick_bg_dl);
-        } else if (dt < 82.0f) {
+        } else if (dt < GOOD_NOTE_DT) {
             SET_BG_XY(&good_bg, toadX, toadY);
             SET_BG_SCALE(&good_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, good_bg_dl);

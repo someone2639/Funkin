@@ -88,7 +88,7 @@ Notes = list(set(Notes))
 Notes.sort(key=operator.attrgetter('startTime'))
 
 for n in Notes:
-    writeline("\t{%d, %f, %d, %d, %f, %f}," % (
+    writeline("\t{%d, %lf, %d, %d, %f, %f}," % (
       n.mustHit,
       n.startTime,
       n.lane + 4 if n.mustHit and n.lane < 4 else n.lane,
