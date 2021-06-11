@@ -14,6 +14,8 @@
 #include "mario_animation_ids.h"
 #include "game/level_update.h"
 
+// uncomment for funny "you lose even if you win"
+// #define SIIVAGUNNER
 
 #define LEEWAY -50.0f
 #define GOOD_NOTE_DT 82.0f
@@ -396,16 +398,10 @@ void funkin_handle_camera(f32 startTime) {
         if (funkin_notes[i].timer_offset + funkin_notes[i].length > startTime) break;
     }
 
-    if (i == funkin_notecount - 1) {
-        funkin_focus_char = FUNKIN_BF;
-        return;
-    }
-
-    if (funkin_notes[i].who_sings == FUNKIN_BF) {
-        funkin_focus_char = 1;
-    } else {
-        funkin_focus_char = 0;
-    }
+    // if (i == funkin_notecount - 1) {
+    //     funkin_focus_char = FUNKIN_BF;
+    // } else 
+    funkin_focus_char = funkin_notes[i].who_sings;
 }
 
 void funkin_record_note_hit_timings(f32 startTime) {
@@ -504,6 +500,7 @@ void funkin_calculate_score(f32 startTime) {
 
                 score += funkin_score_dt(dt);
                       // +   funkin_score_dt(dlength));
+                if (funkin_health > 400) funkin_health = 400;
                 if (score < 0) score = 0;
             }
         }
@@ -819,7 +816,7 @@ funkin_scoretext_y2 = 216;
 funkin_stopscroll = 0;
 
 
-#define WIN_CONDITION funkin_timer > funkin_notes[funkin_notecount - 1].timer_offset + 500.0f
+#define WIN_CONDITION funkin_timer > funkin_notes[funkin_notecount - 1].timer_offset + 2000.0f
 // #define WIN_CONDITION gPlayer1Controller->buttonDown & L_TRIG
 
 lose_latch = 0;
