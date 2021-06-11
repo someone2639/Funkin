@@ -6,14 +6,17 @@
 #include "notes.h"
 #include "longnotes.h"
 #include "funkin.h"
+#include "game/camera.h"
 #include "game/game_init.h"
 #include "game/object_list_processor.h"
+#include "object_fields.h"
+#include "behavior_data.h"
+#include "mario_animation_ids.h"
+#include "game/level_update.h"
+
 
 #define LEEWAY -50.0f
 #define GOOD_NOTE_DT 82.0f
-
-f32 approach_f32_asymptotic(f32 current, f32 target, f32 multiplier);
-s32 approach_s16_asymptotic(s16 current, s16 target, s16 divisor);
 
 #define HEALTH_START 200
 
@@ -384,8 +387,7 @@ u16 buttonArraySwitchCaseLUT[] = {
 };
 
 extern u8 funkin_focus_char;
-#include "object_fields.h"
-#include "behavior_data.h"
+
 
 void funkin_handle_camera(f32 startTime) {
     struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
@@ -602,8 +604,7 @@ void funkin_choose_bf_model(void) {
         bf->oAnimState = (i == ARRAY_COUNT(buttonArraySwitchCaseLUT) - 1) ? 0 : i + 1;
     }
 }
-#include "mario_animation_ids.h"
-#include "game/level_update.h"
+
 
 u8 mario_anim_table[] = {
     MARIO_ANIM_IDLE_WITH_LIGHT_OBJ,
@@ -816,9 +817,6 @@ funkin_scoretext_x2 = 10;
 funkin_scoretext_y2 = 216;
 
 funkin_stopscroll = 0;
-
-#include "audio/external.h"
-
 
 
 #define WIN_CONDITION funkin_timer > funkin_notes[funkin_notecount - 1].timer_offset + 500.0f

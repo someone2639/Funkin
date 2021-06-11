@@ -29,7 +29,9 @@ def writeline(s):
 
 # start printing
 writeline("#include \"funkin/funkin.h\"")
-writeline("int funkin_bpm = %d;" % bpm)
+writeline("")
+writeline("// Play with this value if the beatmap desyncs")
+writeline("float funkin_bpm = 180.0f;")
 
 c = 0
 writeline("struct funkin_note funkin_notes[] = {")
@@ -42,11 +44,11 @@ OFFSET = 200
 BEAT_START = (bpm2fps(bpm) * (MULTIPLIER * 4)) + (OFFSET * 2)
 
 writeline("\t// special notes that handle the countdown")
-writeline("\t{2, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 0))))
-writeline("\t{3, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 1))))
-writeline("\t{4, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 2))))
-writeline("\t{5, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 3))))
-writeline("\t{6, %f, 0, 0, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 4))))
+writeline("\t{2, 0, 0, %f, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 0))))
+writeline("\t{3, 0, 0, %f, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 1))))
+writeline("\t{4, 0, 0, %f, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 2))))
+writeline("\t{5, 0, 0, %f, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 3))))
+writeline("\t{6, 0, 0, %f, 0.0, 0.0}," % (OFFSET + (bpm2fps(bpm) * (MULTIPLIER * 4))))
 writeline("");
 writeline("\t// the actual beatmap")
 
@@ -88,11 +90,11 @@ Notes = list(set(Notes))
 Notes.sort(key=operator.attrgetter('startTime'))
 
 for n in Notes:
-    writeline("\t{%d, %lf, %d, %d, %f, %f}," % (
+    writeline("\t{%d, %d, %d, %f, %f, %f}," % (
       n.mustHit,
-      n.startTime,
       n.lane + 4 if n.mustHit and n.lane < 4 else n.lane,
       n.length,
+      n.startTime,
       0, 0
       ))
 writeline("};")
