@@ -1,6 +1,6 @@
 # Friday Night Funkin' in SM64
 
-It's exactly what it says on the tin. Go to [this link](https://github.com/CrashOveride95/ultrasm64) to build the game, and this readme will contain a simple modding guide.
+It's exactly what it says on the tin. Clone with `git clone --depth 1 https://github.com/someone2639/Funkin`, go to [this link](https://github.com/CrashOveride95/ultrasm64) to build the game, and this readme will contain a simple modding guide.
 
 # Modding
 
