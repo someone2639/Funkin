@@ -459,7 +459,7 @@ static int funkin_score_dt(f32 dt) {
         funkin_health += 10;
     } else {
         combo = 0;
-        // funkin_health -= 15;
+        funkin_health -= 15;
     }
 
     return toReturn;
