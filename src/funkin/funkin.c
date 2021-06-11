@@ -404,6 +404,19 @@ void funkin_handle_camera(f32 startTime) {
     funkin_focus_char = funkin_notes[i].who_sings;
 }
 
+u32 funkin_stick_correct_direction(u32 track) {
+    switch (track) {
+        case 0: // LEFT
+            return (gPlayer1Controller->stickX < -30);
+        case 1: // DOWN
+            return (gPlayer1Controller->stickY < -30);
+        case 2: // UP
+            return (gPlayer1Controller->stickY > 30);
+        case 3: // RIGHT
+            return (gPlayer1Controller->stickX > 30);
+    }
+}
+
 void funkin_record_note_hit_timings(f32 startTime) {
     int i;
     for (i = 0; i < funkin_notecount; i++) {
@@ -411,15 +424,14 @@ void funkin_record_note_hit_timings(f32 startTime) {
     }
 
     if (funkin_notes[i].who_sings == FUNKIN_BF) {
-        f32 l = funkin_notes[i].length;
-        if (gPlayer1Controller->buttonPressed & buttonArray[funkin_notes[i].track % 4]
-         || gPlayer1Controller->buttonPressed & buttonArray2[funkin_notes[i].track % 4]
+        // f32 l = funkin_notes[i].length;
+        if (gPlayer1Controller->buttonPressed & (buttonArray[funkin_notes[i].track % 4] | buttonArray2[funkin_notes[i].track % 4])
         ) {
             funkin_notes[i].timeHit = startTime;
         }
         if (funkin_notes[i].timeHit == 0.0f &&
-            (gPlayer1Controller->buttonDown & buttonArray[funkin_notes[i].track % 4]
-          || gPlayer1Controller->buttonDown & buttonArray2[funkin_notes[i].track % 4]
+            (gPlayer1Controller->buttonDown & (buttonArray[funkin_notes[i].track % 4] | buttonArray2[funkin_notes[i].track % 4])
+            || funkin_stick_correct_direction(funkin_notes[i].track % 4)
         )) {
             funkin_notes[i].timeHit = startTime;
         }
