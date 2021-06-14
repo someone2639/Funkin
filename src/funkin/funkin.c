@@ -379,14 +379,6 @@ u16 buttonArray2[4] = {
     R_JPAD,
 };
 
-u16 buttonArraySwitchCaseLUT[] = {
-    L_CBUTTONS,
-    U_CBUTTONS,
-    D_CBUTTONS,
-    R_CBUTTONS,
-    0,
-    0,
-};
 
 extern u8 funkin_focus_char;
 
@@ -596,6 +588,25 @@ void funkin_draw_countdown(void) {
 }
 
 
+u16 buttonArraySwitchCaseLUT[] = {
+    L_CBUTTONS,
+    U_CBUTTONS,
+    D_CBUTTONS,
+    R_CBUTTONS,
+    0,
+    0,
+};
+
+u16 buttonArraySwitchCaseLUT2[] = {
+    L_JPAD,
+    U_JPAD,
+    D_JPAD,
+    R_JPAD,
+    0,
+    0,
+};
+
+
 void funkin_choose_bf_model(void) {
     struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
     if (bf) {
@@ -603,14 +614,23 @@ void funkin_choose_bf_model(void) {
         u16 d = gPlayer1Controller->buttonDown;
         int i;
         for (i = 0; i < ARRAY_COUNT(buttonArraySwitchCaseLUT); i++) {
-            if (d & buttonArraySwitchCaseLUT[i]) {
+            if (d & buttonArraySwitchCaseLUT[i]
+             || d & buttonArraySwitchCaseLUT2[i]
+            ) {
                 break;
             }
-            if (p & buttonArraySwitchCaseLUT[i]) {
+            if (p & buttonArraySwitchCaseLUT[i]
+             || p & buttonArraySwitchCaseLUT2[i]
+            ) {
                 break;
             }
         }
         bf->oAnimState = (i == ARRAY_COUNT(buttonArraySwitchCaseLUT) - 1) ? 0 : i + 1;
+
+        if (gPlayer1Controller->stickX < -30) bf->oAnimState = 1;
+        if (gPlayer1Controller->stickY < -30) bf->oAnimState = 3;
+        if (gPlayer1Controller->stickY > 30)  bf->oAnimState = 2;
+        if (gPlayer1Controller->stickX > 30)  bf->oAnimState = 4;
     }
 }
 
