@@ -1,7 +1,7 @@
 
 
 extern f32 funkin_timer;
-extern int funkin_bpm;
+extern f32 funkin_bpm;
 #define ABSF(f) ((f) < 0 ? -(f) : (f))
 
 

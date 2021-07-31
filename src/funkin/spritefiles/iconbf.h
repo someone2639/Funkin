@@ -1,5 +1,6 @@
 #include <PR/ultratypes.h>
 #include <PR/gs2dex.h>
+extern Gfx s2d_init_dl[];
 extern uObjTxtr iconbf_tex;
 extern uObjMtx iconbf_mtx;
 extern uObjSprite iconbf_obj;

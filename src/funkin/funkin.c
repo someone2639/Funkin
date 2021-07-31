@@ -6,13 +6,19 @@
 #include "notes.h"
 #include "longnotes.h"
 #include "funkin.h"
+#include "game/camera.h"
 #include "game/game_init.h"
 #include "game/object_list_processor.h"
+#include "object_fields.h"
+#include "behavior_data.h"
+#include "mario_animation_ids.h"
+#include "game/level_update.h"
+
+// uncomment for funny "you lose even if you win"
+// #define SIIVAGUNNER
 
 #define LEEWAY -50.0f
-
-f32 approach_f32_asymptotic(f32 current, f32 target, f32 multiplier);
-s32 approach_s16_asymptotic(s16 current, s16 target, s16 divisor);
+#define GOOD_NOTE_DT 82.0f
 
 #define HEALTH_START 200
 
@@ -150,15 +156,15 @@ struct TrackHit trackHitScales[] = {
 };
 
 int track_array[] = {
+    TRACK1,
+    TRACK2,
     TRACK3,
     TRACK4,
-    TRACK2,
-    TRACK1,
 
+    TRACK5,
+    TRACK6,
     TRACK7,
     TRACK8,
-    TRACK6,
-    TRACK5,
 };
 
 
@@ -207,19 +213,20 @@ void funkin_track_scales(f32 timer) {
 }
 
 int track_array2[] = {
-    TRACK4,
-    TRACK3,
     TRACK1,
     TRACK2,
+    TRACK3,
+    TRACK4,
 
-    TRACK8,
-    TRACK7,
     TRACK5,
     TRACK6,
+    TRACK7,
+    TRACK8,
 };
 
 void funkin_draw_note(int x, int y, int color, int direction) {
     if (color == TEMPL) {
+
         call_note_sprite_dl(direction, color, x, y, noteBuffer, noteIndex++, 
             trackHitScales[find_track_scale(track_array2[find_track_scale(x)])].scale
             // 0.6f
@@ -283,6 +290,13 @@ void funkin_reset_timers(void) {
                             p[i].timer_offset - startTime\
                             ) / 4))
 
+int directionArray[] = {
+    LEFT,
+    DOWN,
+    UP,
+    RIGHT,
+};
+
 // i sure hope you didnt intend to edit this part of the code :)
 // i sure hope i dont either :)
 // update: i had to edit this part of the code :)
@@ -306,7 +320,7 @@ void funkin_gen_longnote(int track, int y, int len, int idx) {
     funkin_draw_note(track_array[funkin_notes[idx].track],
                          y,
                          funkin_notes[idx].track % 4,
-                         funkin_notes[idx].track % 4
+                         directionArray[funkin_notes[idx].track % 4]
                          );
 }
 
@@ -320,6 +334,7 @@ void funkin_gen_longnote(int track, int y, int len, int idx) {
 // #define COND_DRAW 1
 
 
+
 void funkin_draw_beatmap_from_offset(f32 startTime) {
     for (int i = 0; i < funkin_notecount; i++) {
         if (funkin_notes[i].timer_offset < (startTime - TIMER_SWAY)) continue;
@@ -330,7 +345,7 @@ void funkin_draw_beatmap_from_offset(f32 startTime) {
                 funkin_draw_note(track_array[funkin_notes[i].track],
                              DIST_FROM_TOP(funkin_notes, i),
                              funkin_notes[i].track % 4,
-                             funkin_notes[i].track % 4
+                             directionArray[funkin_notes[i].track % 4]
                              );
             } else {
                 funkin_gen_longnote(
@@ -351,31 +366,22 @@ int combo = 0;
 u8 isScored[MAX_SPRITE_COUNT];
 
 u16 buttonArray[4] = {
+    L_CBUTTONS,
+    D_CBUTTONS,
     U_CBUTTONS,
     R_CBUTTONS,
-    D_CBUTTONS,
-    L_CBUTTONS,
 };
 
 u16 buttonArray2[4] = {
+    L_JPAD,
+    D_JPAD,
     U_JPAD,
     R_JPAD,
-    D_JPAD,
-    L_JPAD,
 };
 
-u16 buttonArraySwitchCaseLUT[] = {
-    L_CBUTTONS,
-    U_CBUTTONS,
-    D_CBUTTONS,
-    R_CBUTTONS,
-    0,
-    0,
-};
 
 extern u8 funkin_focus_char;
-#include "object_fields.h"
-#include "behavior_data.h"
+
 
 void funkin_handle_camera(f32 startTime) {
     struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
@@ -384,15 +390,22 @@ void funkin_handle_camera(f32 startTime) {
         if (funkin_notes[i].timer_offset + funkin_notes[i].length > startTime) break;
     }
 
-    if (i == funkin_notecount - 1) {
-        funkin_focus_char = FUNKIN_BF;
-        return;
-    }
+    // if (i == funkin_notecount - 1) {
+    //     funkin_focus_char = FUNKIN_BF;
+    // } else 
+    funkin_focus_char = funkin_notes[i].who_sings;
+}
 
-    if (funkin_notes[i].who_sings == FUNKIN_BF) {
-        funkin_focus_char = 1;
-    } else {
-        funkin_focus_char = 0;
+u32 funkin_stick_correct_direction(u32 track) {
+    switch (track) {
+        case 0: // LEFT
+            return (gPlayer1Controller->stickX < -30);
+        case 1: // DOWN
+            return (gPlayer1Controller->stickY < -30);
+        case 2: // UP
+            return (gPlayer1Controller->stickY > 30);
+        case 3: // RIGHT
+            return (gPlayer1Controller->stickX > 30);
     }
 }
 
@@ -403,15 +416,14 @@ void funkin_record_note_hit_timings(f32 startTime) {
     }
 
     if (funkin_notes[i].who_sings == FUNKIN_BF) {
-        f32 l = funkin_notes[i].length;
-        if (gPlayer1Controller->buttonPressed & buttonArray[funkin_notes[i].track % 4]
-         || gPlayer1Controller->buttonPressed & buttonArray2[funkin_notes[i].track % 4]
+        // f32 l = funkin_notes[i].length;
+        if (gPlayer1Controller->buttonPressed & (buttonArray[funkin_notes[i].track % 4] | buttonArray2[funkin_notes[i].track % 4])
         ) {
             funkin_notes[i].timeHit = startTime;
         }
         if (funkin_notes[i].timeHit == 0.0f &&
-            (gPlayer1Controller->buttonDown & buttonArray[funkin_notes[i].track % 4]
-          || gPlayer1Controller->buttonDown & buttonArray2[funkin_notes[i].track % 4]
+            (gPlayer1Controller->buttonDown & (buttonArray[funkin_notes[i].track % 4] | buttonArray2[funkin_notes[i].track % 4])
+            || funkin_stick_correct_direction(funkin_notes[i].track % 4)
         )) {
             funkin_notes[i].timeHit = startTime;
         }
@@ -469,6 +481,7 @@ static int funkin_score_dt(f32 dt) {
 // calculates the entire score every frame
 // this is the only way i could do this
 void funkin_calculate_score(f32 startTime) {
+    combo = 0;
     funkin_health = HEALTH_START;
 
     for (int i = 0; i < funkin_notecount; i++) {
@@ -491,6 +504,7 @@ void funkin_calculate_score(f32 startTime) {
 
                 score += funkin_score_dt(dt);
                       // +   funkin_score_dt(dlength));
+                if (funkin_health > 400) funkin_health = 400;
                 if (score < 0) score = 0;
             }
         }
@@ -502,13 +516,15 @@ void funkin_calculate_score(f32 startTime) {
 #define COMBO_SWAY 110.0f
 
 void funkin_calculate_combo(f32 startTime) {
+    combo = 0;
     for (int i = 0; i < funkin_notecount; i++) {
+        if (funkin_notes[i].timer_offset < (startTime - TIMER_SWAY)) continue;
         if (funkin_notes[i].timer_offset > startTime) break;
 
         if (funkin_notes[i].who_sings == FUNKIN_BF) {
             f32 dt = ABSF(funkin_notes[i].timeHit - funkin_notes[i].timer_offset - LEEWAY);
             if (funkin_notes[i].length == 0) {
-                if (dt <= 100.0f) combo++;
+                if (dt <= GOOD_NOTE_DT) combo++;
                 else combo = 0;
             } else {
                 // f32 dlength = ABSF(
@@ -517,7 +533,7 @@ void funkin_calculate_combo(f32 startTime) {
                 //     - LEEWAY
                 //     );
 
-                if (dt <= 100.0f) combo++;
+                if (dt <= GOOD_NOTE_DT) combo++;
                 else combo = 0;
             }
         }
@@ -572,6 +588,25 @@ void funkin_draw_countdown(void) {
 }
 
 
+u16 buttonArraySwitchCaseLUT[] = {
+    L_CBUTTONS,
+    U_CBUTTONS,
+    D_CBUTTONS,
+    R_CBUTTONS,
+    0,
+    0,
+};
+
+u16 buttonArraySwitchCaseLUT2[] = {
+    L_JPAD,
+    U_JPAD,
+    D_JPAD,
+    R_JPAD,
+    0,
+    0,
+};
+
+
 void funkin_choose_bf_model(void) {
     struct Object *bf = cur_obj_nearest_object_with_behavior(bhvFunkin);
     if (bf) {
@@ -579,18 +614,26 @@ void funkin_choose_bf_model(void) {
         u16 d = gPlayer1Controller->buttonDown;
         int i;
         for (i = 0; i < ARRAY_COUNT(buttonArraySwitchCaseLUT); i++) {
-            if (d & buttonArraySwitchCaseLUT[i]) {
+            if (d & buttonArraySwitchCaseLUT[i]
+             || d & buttonArraySwitchCaseLUT2[i]
+            ) {
                 break;
             }
-            if (p & buttonArraySwitchCaseLUT[i]) {
+            if (p & buttonArraySwitchCaseLUT[i]
+             || p & buttonArraySwitchCaseLUT2[i]
+            ) {
                 break;
             }
         }
         bf->oAnimState = (i == ARRAY_COUNT(buttonArraySwitchCaseLUT) - 1) ? 0 : i + 1;
+
+        if (gPlayer1Controller->stickX < -30) bf->oAnimState = 1;
+        if (gPlayer1Controller->stickY < -30) bf->oAnimState = 3;
+        if (gPlayer1Controller->stickY > 30)  bf->oAnimState = 2;
+        if (gPlayer1Controller->stickX > 30)  bf->oAnimState = 4;
     }
 }
-#include "mario_animation_ids.h"
-#include "game/level_update.h"
+
 
 u8 mario_anim_table[] = {
     MARIO_ANIM_IDLE_WITH_LIGHT_OBJ,
@@ -770,7 +813,7 @@ void funkin_note_hit_feedback(f32 timer) {
             SET_BG_XY(&sick_bg, toadX, toadY);
             SET_BG_SCALE(&sick_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, sick_bg_dl);
-        } else if (dt < 82.0f) {
+        } else if (dt < GOOD_NOTE_DT) {
             SET_BG_XY(&good_bg, toadX, toadY);
             SET_BG_SCALE(&good_bg, 0.75f);
             gSPDisplayList(gDisplayListHead++, good_bg_dl);
@@ -804,11 +847,8 @@ funkin_scoretext_y2 = 216;
 
 funkin_stopscroll = 0;
 
-#include "audio/external.h"
 
-
-
-#define WIN_CONDITION funkin_timer > funkin_notes[funkin_notecount - 1].timer_offset + 500.0f
+#define WIN_CONDITION funkin_timer > funkin_notes[funkin_notecount - 1].timer_offset + 2000.0f
 // #define WIN_CONDITION gPlayer1Controller->buttonDown & L_TRIG
 
 lose_latch = 0;
